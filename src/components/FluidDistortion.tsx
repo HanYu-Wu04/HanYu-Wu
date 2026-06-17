@@ -459,10 +459,16 @@ const FluidDistortion: React.FC = () => {
       const { width: rectWidth, height: rectHeight } = containerRef.current.getBoundingClientRect();
       const w = Math.max(1, Math.floor(rectWidth));
       const h = Math.max(1, Math.floor(rectHeight));
-      renderer.setSize(w, h, false);
-      displayMaterial.uniforms.uResolution.value.set(w, h);
-      width = w;
-      height = h;
+      if (w !== width || h !== height) {
+        renderer.setSize(w, h, false);
+        displayMaterial.uniforms.uResolution.value.set(w, h);
+        width = w;
+        height = h;
+        
+        // Immediately render scene to prevent blank canvas flicker during resize / scroll
+        renderer.setRenderTarget(null);
+        renderer.render(scene, camera);
+      }
     };
 
     const resizeObserver = new ResizeObserver(updateRendererSize);
