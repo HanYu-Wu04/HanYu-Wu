@@ -16,6 +16,7 @@ export const fluidFragmentShader = `
   uniform vec2 uResolution;
   uniform float uDecay;
   uniform bool uIsMoving;
+  uniform bool uUseAutoMouse;
   
   varying vec2 vUv;
 
@@ -34,8 +35,13 @@ export const fluidFragmentShader = `
     float brush = exp(-dist * 33.0);
     if (!uIsMoving) brush = 0.0;
     
-    // Combine brushes (we remove the autoBrush to keep it purely interactive like Lando Norris website)
-    float finalBrush = brush;
+    // Auto idle cursor brush - smooth transition
+    float autoDist = line(vUv, uPrevAutoMouse, uAutoMouse);
+    float autoBrush = exp(-autoDist * 33.0);
+    if (!uUseAutoMouse) autoBrush = 0.0;
+    
+    // Combine brushes
+    float finalBrush = max(brush, autoBrush);
     
     // Add current brush to previous state
     vec3 color = prev.rgb * (uDecay - 0.005) + vec3(finalBrush * 0.85);

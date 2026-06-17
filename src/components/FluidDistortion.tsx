@@ -299,7 +299,7 @@ const FluidDistortion: React.FC = () => {
     const autoMouse = new THREE.Vector2(0.5, 0.5);
     const prevAutoMouse = new THREE.Vector2(0.5, 0.5);
     let isMoving = false;
-    let lastMoveTime = 0;
+    let lastMoveTime = -10000; // Start with idle status to trigger auto-brush immediately
     
     const onKeyDown = (event: KeyboardEvent) => {
       typedKeys.current = (typedKeys.current + event.key.toLowerCase()).slice(-20);
@@ -339,6 +339,7 @@ const FluidDistortion: React.FC = () => {
         uResolution: { value: new THREE.Vector2(size, size) },
         uDecay: { value: 0.985 },
         uIsMoving: { value: false },
+        uUseAutoMouse: { value: true },
       },
       vertexShader,
       fragmentShader: fluidFragmentShader,
@@ -424,8 +425,8 @@ const FluidDistortion: React.FC = () => {
     // Create and position the holographic 3D ice mask overlay
     const iceMaskObj = createIceMask();
     const iceMaskGroup = iceMaskObj.group;
-    // Position mask over head (lowered to y = -0.02 in NDC to fit exactly on the head/face of the portrait)
-    iceMaskGroup.position.set(0, -0.02, 0.0);
+    // Position mask over head (centered at y = 0.00 in NDC to fit exactly on the head/face of the portrait)
+    iceMaskGroup.position.set(0, 0.00, 0.0);
     scene.add(iceMaskGroup);
 
     const simMesh = new THREE.Mesh(planeGeometry, trailsMaterial);
@@ -484,21 +485,35 @@ const FluidDistortion: React.FC = () => {
         isMoving = false;
       }
 
-      // Update autonomous movement
+      // Update autonomous movement (4-stroke raster pattern from top to bottom)
       prevAutoMouse.copy(autoMouse);
-      autoMouse.x = 0.5 + Math.sin(time * 0.5) * 0.3 + Math.cos(time * 0.8) * 0.1;
-      autoMouse.y = 0.5 + Math.cos(time * 0.4) * 0.3 + Math.sin(time * 0.7) * 0.1;
+      
+      const sweepDuration = 6.0;
+      const tNorm = (time % sweepDuration) / sweepDuration;
+      
+      const nextY = 0.85 - 0.70 * tNorm;
+      const angle = tNorm * Math.PI * 4.0 - Math.PI / 2.0;
+      const nextX = 0.5 + 0.42 * Math.sin(angle);
+      
+      autoMouse.set(nextX, nextY);
+      
+      // Prevent drawing a line when the loop resets from bottom to top
+      if (Math.abs(autoMouse.y - prevAutoMouse.y) > 0.4) {
+        prevAutoMouse.copy(autoMouse);
+      }
 
       const prevTarget = pingPongTargets[currentTargetIndex];
       currentTargetIndex = (currentTargetIndex + 1) % 2;
       const currentRenderTarget = pingPongTargets[currentTargetIndex];
 
+      const isIdle = (performance.now() - lastMoveTime) > 3000;
       trailsMaterial.uniforms.uPrevTrails.value = prevTarget.texture;
       trailsMaterial.uniforms.uMouse.value.copy(mouse);
       trailsMaterial.uniforms.uPrevMouse.value.copy(prevMouse);
       trailsMaterial.uniforms.uAutoMouse.value.copy(autoMouse);
       trailsMaterial.uniforms.uPrevAutoMouse.value.copy(prevAutoMouse);
       trailsMaterial.uniforms.uIsMoving.value = isMoving;
+      trailsMaterial.uniforms.uUseAutoMouse.value = isIdle;
 
       renderer.setRenderTarget(currentRenderTarget);
       renderer.render(simScene, camera);
@@ -522,7 +537,8 @@ const FluidDistortion: React.FC = () => {
       iceMaskObj.scanMaterial.uniforms.uTime.value = time;
       iceMaskObj.scanMaterial.uniforms.uAlpha.value = scrollFade;
       iceMaskObj.scanMaterial.uniforms.uFluid.value = currentRenderTarget.texture;
-      iceMaskObj.scanMaterial.uniforms.uResolution.value.set(width, height);
+      const pr = renderer.getPixelRatio();
+      iceMaskObj.scanMaterial.uniforms.uResolution.value.set(width * pr, height * pr);
 
       // Interactive 3D ice mask tilt based on mouse position
       let targetRotX = -0.08;
@@ -544,7 +560,7 @@ const FluidDistortion: React.FC = () => {
       const textureAspect = baseSize.y > 0 ? baseSize.x / baseSize.y : 1.0;
       
       const frameScale = 1.06;
-      const baseY = -0.02;
+      const baseY = 0.00;
 
       if (aspect > textureAspect) {
         // Viewport is wider than portrait (contain height-limited)
