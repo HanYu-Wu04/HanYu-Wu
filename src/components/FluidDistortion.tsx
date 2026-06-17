@@ -309,7 +309,7 @@ const FluidDistortion: React.FC = () => {
 
   // Background Darkening & Effects - Clean dark transition at the end
   const bgBrightness = useTransform(scrollYProgress, [0.25, 0.40, 1.0], [1.0, 0.30, 0.30]);
-  const bgBlur = useTransform(scrollYProgress, [0.25, 0.40, 1.0], ['blur(0px)', 'blur(16px)', 'blur(16px)']);
+  const bgBlur = useTransform(scrollYProgress, [0.25, 0.40, 1.0], ['blur(0px)', 'blur(4px)', 'blur(4px)']);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
   const textColor = useTransform(scrollYProgress, [0.88, 0.94, 1.0], ['#ffffff', '#ffffff', '#ffffff']);
   const topUIOpacity = 1;
