@@ -308,8 +308,8 @@ const FluidDistortion: React.FC = () => {
   const manifestoY = useTransform(scrollYProgress, [0.31, 0.42, 1.0], ['100%', '0%', '0%']);
 
   // Background Darkening & Effects - Clean dark transition at the end
-  const bgBrightness = useTransform(scrollYProgress, [0, 1.0], [1, 1]);
-  const bgBlur = useTransform(scrollYProgress, [0.5, 0.8, 0.95, 1.0], ['blur(0px)', 'blur(0px)', 'blur(0px)', 'blur(0px)']);
+  const bgBrightness = useTransform(scrollYProgress, [0.25, 0.40, 1.0], [1.0, 0.30, 0.30]);
+  const bgBlur = useTransform(scrollYProgress, [0.25, 0.40, 1.0], ['blur(0px)', 'blur(16px)', 'blur(16px)']);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
   const textColor = useTransform(scrollYProgress, [0.88, 0.94, 1.0], ['#ffffff', '#ffffff', '#ffffff']);
   const topUIOpacity = 1;
@@ -836,7 +836,7 @@ const FluidDistortion: React.FC = () => {
             className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
             <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-2 md:gap-3 items-center">
-              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2">
+              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2 drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]">
                 <RevealLine index={0} isVisible={manifestoSeen}>
                   <span className="text-[#38bdf8]">Challenging</span> <span className="text-white">the market,</span>
                 </RevealLine>
