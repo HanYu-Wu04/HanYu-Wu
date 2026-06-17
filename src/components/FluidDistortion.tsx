@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { motion, useScroll, useTransform } from 'motion/react';
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
 import { vertexShader, fluidFragmentShader, displayFragmentShader } from '../shaders';
 import LandoText from './LandoText';
 import Stroke from './Stroke';
@@ -228,6 +228,57 @@ function createIceMask(): {
   };
 }
 
+const RevealLine: React.FC<{ 
+  children: React.ReactNode; 
+  index: number; 
+  isVisible: boolean;
+}> = ({ children, index, isVisible }) => {
+  const barVariants = {
+    hidden: { left: 0, width: "0%" },
+    visible: {
+      width: ["0%", "100%", "0%"],
+      left: ["0%", "0%", "100%"],
+      transition: {
+        delay: index * 0.45,
+        duration: 0.85,
+        ease: [0.76, 0, 0.24, 1] as any
+      }
+    }
+  };
+
+  const textVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delay: index * 0.45 + 0.40,
+        duration: 0.01
+      }
+    }
+  };
+
+  return (
+    <div className="relative inline-block overflow-hidden py-1 px-2 select-none">
+      {/* The Text */}
+      <motion.span
+        variants={textVariants}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+        className="block"
+      >
+        {children}
+      </motion.span>
+      {/* The Sweeping Reveal Bar */}
+      <motion.div
+        variants={barVariants}
+        initial="hidden"
+        animate={isVisible ? "visible" : "hidden"}
+        className="absolute top-0 bottom-0 bg-[#38bdf8] z-10"
+      />
+    </div>
+  );
+};
+
 const FluidDistortion: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -266,6 +317,13 @@ const FluidDistortion: React.FC = () => {
   const [isIceManMode, setIsIceManMode] = useState(false);
   const iceManRef = useRef(false);
   const typedKeys = useRef('');
+
+  const [manifestoSeen, setManifestoSeen] = useState(false);
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    if (latest >= 0.31 && !manifestoSeen) {
+      setManifestoSeen(true);
+    }
+  });
 
   // Assets
   const ASSETS = {
@@ -777,15 +835,22 @@ const FluidDistortion: React.FC = () => {
             }}
             className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
-            <div className="max-w-6xl text-center pointer-events-auto group">
-              <h2 className="text-[6vw] md:text-[4.5vw] font-black leading-[1.2] md:leading-[1] tracking-tight uppercase italic select-none text-blue-950 drop-shadow-sm px-4">
-                <span className="text-sky-600">Redefining</span> <span className="text-blue-900/80">Boundaries,</span>{" "}
-                <span className="text-blue-900/40">Pushing</span> <span className="text-sky-500">Creativity,</span>{" "}
-                <span className="text-blue-900/60">Bringing</span> <span className="text-blue-900/40">it all in</span>{" "}
-                <span className="text-blue-900/80">every</span> <span className="text-sky-600">line.</span> <br />
-                <span className="text-blue-900/40">Defining a</span> <span className="text-sky-500">Legacy</span> <span className="text-blue-900/40">in the world of</span>{" "}
-                <span className="text-blue-900/40">Code</span> <span className="text-blue-900/40">on and off the</span>{" "}
-                <span className="text-sky-600">screen.</span>
+            <div className="max-w-6xl text-center pointer-events-auto group flex flex-col gap-4 items-center">
+              <h2 className="text-[5.2vw] md:text-[3.2vw] font-black leading-[1.3] md:leading-[1.2] tracking-tight uppercase italic select-none px-4 flex flex-col items-center">
+                <RevealLine index={0} isVisible={manifestoSeen}>
+                  <span className="text-sky-600">Challenging</span>{" "}
+                  <span className="text-blue-900/80">the market,</span>{" "}
+                  <span className="text-blue-900/40">building to scale,</span>
+                </RevealLine>
+                <RevealLine index={1} isVisible={manifestoSeen}>
+                  <span className="text-sky-500">driving results</span>{" "}
+                  <span className="text-blue-900/80">across every vertical.</span>
+                </RevealLine>
+                <RevealLine index={2} isVisible={manifestoSeen}>
+                  <span className="text-blue-900/60">Shaping</span>{" "}
+                  <span className="text-blue-900/40">an industry legacy through</span>{" "}
+                  <span className="text-sky-600">vision, execution, and leadership.</span>
+                </RevealLine>
               </h2>
             </div>
           </motion.div>
