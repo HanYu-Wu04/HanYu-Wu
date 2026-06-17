@@ -239,8 +239,8 @@ const RevealLine: React.FC<{
       width: ["0%", "100%", "0%"],
       left: ["0%", "0%", "100%"],
       transition: {
-        delay: index * 0.45,
-        duration: 0.85,
+        delay: index * 0.22,
+        duration: 0.65,
         ease: [0.76, 0, 0.24, 1] as any
       }
     }
@@ -251,7 +251,7 @@ const RevealLine: React.FC<{
     visible: {
       opacity: 1,
       transition: {
-        delay: index * 0.45 + 0.40,
+        delay: index * 0.22 + 0.30,
         duration: 0.01
       }
     }
@@ -297,7 +297,7 @@ const FluidDistortion: React.FC = () => {
   // Section-specific opacities and offsets
   const section1Opacity = useTransform(scrollYProgress, [0, 0.4], [1, 1]);
   const marqueeOpacity = useTransform(scrollYProgress, [0.04, 0.1], [0, 1]);
-  const signatureOpacity = useTransform(scrollYProgress, [0.12, 0.14, 0.28, 0.33], [0, 1, 1, 0]);
+  const signatureOpacity = useTransform(scrollYProgress, [0.12, 0.14, 1.0], [0, 1, 1]);
   const signatureScale = useTransform(scrollYProgress, [0.12, 0.25], [0.92, 1]);
   const signaturePathLength = useTransform(scrollYProgress, [0.12, 0.25], [0, 1]);
   
@@ -835,21 +835,28 @@ const FluidDistortion: React.FC = () => {
             }}
             className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
-            <div className="max-w-6xl text-center pointer-events-auto group flex flex-col gap-4 items-center">
-              <h2 className="text-[5.2vw] md:text-[3.2vw] font-black leading-[1.3] md:leading-[1.2] tracking-tight uppercase italic select-none px-4 flex flex-col items-center">
+            <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-2 md:gap-3 items-center">
+              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2">
                 <RevealLine index={0} isVisible={manifestoSeen}>
-                  <span className="text-sky-600">Challenging</span>{" "}
-                  <span className="text-blue-900/80">the market,</span>{" "}
-                  <span className="text-blue-900/40">building to scale,</span>
+                  <span className="text-[#38bdf8]">Challenging</span> <span className="text-white">the market,</span>
                 </RevealLine>
                 <RevealLine index={1} isVisible={manifestoSeen}>
-                  <span className="text-sky-500">driving results</span>{" "}
-                  <span className="text-blue-900/80">across every vertical.</span>
+                  <span className="text-white">building to</span> <span className="text-[#38bdf8]">scale,</span>
                 </RevealLine>
                 <RevealLine index={2} isVisible={manifestoSeen}>
-                  <span className="text-blue-900/60">Shaping</span>{" "}
-                  <span className="text-blue-900/40">an industry legacy through</span>{" "}
-                  <span className="text-sky-600">vision, execution, and leadership.</span>
+                  <span className="text-[#38bdf8]">driving results</span>
+                </RevealLine>
+                <RevealLine index={3} isVisible={manifestoSeen}>
+                  <span className="text-white">across every vertical.</span>
+                </RevealLine>
+                <RevealLine index={4} isVisible={manifestoSeen}>
+                  <span className="text-white">Shaping an industry</span> <span className="text-[#38bdf8]">legacy</span>
+                </RevealLine>
+                <RevealLine index={5} isVisible={manifestoSeen}>
+                  <span className="text-white">through</span> <span className="text-sky-300">vision, execution,</span>
+                </RevealLine>
+                <RevealLine index={6} isVisible={manifestoSeen}>
+                  <span className="text-white">and</span> <span className="text-[#38bdf8]">leadership.</span>
                 </RevealLine>
               </h2>
             </div>
