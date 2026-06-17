@@ -750,24 +750,23 @@ const FluidDistortion: React.FC = () => {
               </motion.div>
             </motion.div>
 
-          </motion.div>
-
-          {/* Signature Overlay */}
-          <motion.div
-            style={{
-              opacity: signatureOpacity,
-              scale: signatureScale,
-            }}
-            className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center px-6"
-          >
-            <div className="h-[140vh] w-[min(192vw,224vh)]">
-              <Stroke
-                className="w-full h-full drop-shadow-[0_0_44px_rgba(14,165,233,0.65)] overflow-visible"
-                color="#0ea5e9"
-                pathLength={signaturePathLength}
-                strokeWidth={5}
-              />
-            </div>
+            {/* Signature Overlay - Nested inside the Landing Scene to move and scale together */}
+            <motion.div
+              style={{
+                opacity: signatureOpacity,
+                scale: signatureScale,
+              }}
+              className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center px-6"
+            >
+              <div className="h-[140vh] w-[min(192vw,224vh)]">
+                <Stroke
+                  className="w-full h-full drop-shadow-[0_0_44px_rgba(14,165,233,0.65)] overflow-visible"
+                  color="#0ea5e9"
+                  pathLength={signaturePathLength}
+                  strokeWidth={5}
+                />
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Manifesto Text - Moves up into the "new space" from below */}
