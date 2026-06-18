@@ -7,6 +7,19 @@ import Stroke from './Stroke';
 import { Download } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
 
+const FINAL_SCROLL_PROGRESS = 1;
+const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
+const FINAL_SNOW_FRAME_TIME = 5.8;
+
+function lockVideoToFinalFrame(video: HTMLVideoElement) {
+  if (Number.isFinite(video.duration)) {
+    video.currentTime = Math.min(FINAL_SNOW_FRAME_TIME, Math.max(0, video.duration - 0.05));
+  } else {
+    video.currentTime = FINAL_SNOW_FRAME_TIME;
+  }
+  video.pause();
+}
+
 const RevealLetter: React.FC<{
   scrollYProgress: any;
   start: number;
@@ -14,7 +27,7 @@ const RevealLetter: React.FC<{
   char: string;
   isLast: boolean;
 }> = ({ scrollYProgress, start, end, char, isLast }) => {
-  const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
+  const opacity = useTransform(scrollYProgress, [start, end], [0, 1], { clamp: true });
   return (
     <motion.span
       style={{ 
@@ -323,14 +336,14 @@ const FluidDistortion: React.FC = () => {
   const signaturePathLength = useTransform(scrollYProgress, [0.15, 0.38], [0, 1]);
   
   // Scene coordination: After shrinking, the whole "Landing" scene moves up
-  const sceneY = useTransform(scrollYProgress, [0.45, 0.85], ['0%', '-100%']);
+  const sceneY = useTransform(scrollYProgress, [0.45, FINAL_SCROLL_PROGRESS], ['0%', '-100%']);
   
-  const manifestoOpacity = useTransform(scrollYProgress, [0.52, 0.85, 1.0], [0, 1, 1]);
-  const manifestoY = useTransform(scrollYProgress, [0.52, 0.85, 1.0], ['100%', '0%', '0%']);
+  const manifestoOpacity = useTransform(scrollYProgress, [0.52, 0.92, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
+  const manifestoY = useTransform(scrollYProgress, [0.52, FINAL_SCROLL_PROGRESS], ['100%', '0%']);
 
   // Background Darkening & Effects - Clean dark transition at the end
-  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.80, 1.0], [0.95, 0.80, 0.80]);
-  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, 0.85], [0, 0.78]);
+  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [0.95, 0.80, 0.80]);
+  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, FINAL_SCROLL_PROGRESS], [0, 0.78]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
   const nameColor = useTransform(scrollYProgress, [0.08, 0.38], ['#000000', '#ffffff']);
   const topUIScale = useTransform(scrollYProgress, [0.08, 0.38], [1, 0.9]);
@@ -367,11 +380,9 @@ const FluidDistortion: React.FC = () => {
 
   // Manifesto section developer emblem transforms
   const devEmblemPathLength = useTransform(scrollYProgress, [0.52, 0.65], [0, 1]);
-  const devEmblemFillOpacity = useTransform(scrollYProgress, [0.65, 0.72], [0, 1]);
-  const devLetters = "DEVELOPER SINCE 2021".split("");
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const homeVideoRef = useRef<HTMLVideoElement>(null);
+  const finalFrameLockedRef = useRef(false);
 
   useEffect(() => {
     if (homeVideoRef.current) {
@@ -390,6 +401,29 @@ const FluidDistortion: React.FC = () => {
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (latest >= 0.52 && !manifestoSeen) {
       setManifestoSeen(true);
+    }
+
+    const video = homeVideoRef.current;
+    if (!video) return;
+
+    if (latest >= VIDEO_FREEZE_SCROLL_PROGRESS) {
+      if (!finalFrameLockedRef.current) {
+        try {
+          lockVideoToFinalFrame(video);
+          finalFrameLockedRef.current = true;
+        } catch (err) {
+          console.warn("Could not lock snow video final frame:", err);
+          video.pause();
+        }
+      }
+      return;
+    }
+
+    finalFrameLockedRef.current = false;
+    if (video.paused) {
+      video.play().catch(err => {
+        console.warn("Home page video autoplay failed:", err);
+      });
     }
   });
 
@@ -608,6 +642,7 @@ const FluidDistortion: React.FC = () => {
     let maskFormedProgress = 0.0;
     let currentRotationX = -0.08;
     let currentRotationY = 0.0;
+    let bgVideoFinalFrameLocked = false;
 
     const animate = () => {
       const animationId = requestAnimationFrame(animate);
@@ -660,6 +695,23 @@ const FluidDistortion: React.FC = () => {
 
       // Read scroll and fade out ice mask opacity as user scrolls past hero section
       const currentScroll = scrollYProgress.get();
+      if (currentScroll >= VIDEO_FREEZE_SCROLL_PROGRESS) {
+        if (!bgVideoFinalFrameLocked) {
+          try {
+            lockVideoToFinalFrame(bgVideo);
+            bgVideoFinalFrameLocked = true;
+          } catch (e) {
+            console.warn("Could not lock snow video final frame:", e);
+            bgVideo.pause();
+          }
+        }
+      } else {
+        bgVideoFinalFrameLocked = false;
+        if (bgVideo.paused) {
+          bgVideo.play().catch(e => console.warn("Video play failed:", e));
+        }
+      }
+
       let scrollFade = 1.0;
       if (currentScroll > 0.05) {
         scrollFade = Math.max(0.0, 1.0 - (currentScroll - 0.05) / 0.1);
@@ -982,28 +1034,14 @@ const FluidDistortion: React.FC = () => {
                     d="M 17,17 L 14,20 L 17,23 M 23,17 L 26,20 L 23,23 M 21,15 L 19,25 M 13,16 C 9,12 3,12 1,15 C 3,17 8,19 13,20 M 12,20 C 7,17 2,18 1,21 C 3,23 8,24 12,24 M 12,24 C 7,22 3,23 2,26 C 4,27 8,27 12,27 M 27,16 C 31,12 37,12 39,15 C 37,17 32,19 27,20 M 28,20 C 33,17 38,18 39,21 C 37,23 32,24 28,24 M 28,24 C 33,22 37,23 38,26 C 36,27 32,27 28,27"
                     stroke="currentColor"
                     strokeWidth={1.5}
-                    fill="currentColor"
+                    fill="none"
                     style={{
-                      pathLength: devEmblemPathLength,
-                      fillOpacity: devEmblemFillOpacity
+                      pathLength: devEmblemPathLength
                     }}
                   />
                 </motion.svg>
-                <div className="text-[9px] md:text-[10px] font-black uppercase flex whitespace-nowrap text-[#0ea5e9]">
-                  {devLetters.map((char, index) => {
-                    const startScroll = 0.55 + (index * 0.15) / devLetters.length;
-                    const endScroll = startScroll + 0.03;
-                    return (
-                      <RevealLetter
-                        key={index}
-                        scrollYProgress={scrollYProgress}
-                        start={startScroll}
-                        end={endScroll}
-                        char={char}
-                        isLast={index === devLetters.length - 1}
-                      />
-                    );
-                  })}
+                <div className="text-[9px] md:text-[10px] font-black uppercase whitespace-nowrap text-[#0ea5e9] tracking-[0.45em] pl-[0.45em]">
+                  BUILDING SINCE 2021
                 </div>
               </div>
               <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2">

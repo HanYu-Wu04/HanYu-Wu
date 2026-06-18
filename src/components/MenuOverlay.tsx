@@ -239,7 +239,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
               />
             </svg>
             <span className="text-[9px] font-black uppercase text-[#0ea5e9] tracking-widest mt-1">
-              DEVELOPER SINCE 2021
+              BUILDING SINCE 2021
             </span>
           </div>
         </div>
