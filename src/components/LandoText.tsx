@@ -4,10 +4,14 @@ interface LandoTextProps {
   text: string;
   className?: string;
   delayOffset?: number;
+  wholeLine?: boolean;
 }
 
-const LandoText: React.FC<LandoTextProps> = ({ text, className = '', delayOffset = 0 }) => {
+const LandoText: React.FC<LandoTextProps> = ({ text, className = '', delayOffset = 0, wholeLine = false }) => {
   const segments = useMemo(() => {
+    if (wholeLine) {
+      return [text];
+    }
     try {
       // Safely split text by visual characters using Intl.Segmenter
       const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
@@ -16,7 +20,7 @@ const LandoText: React.FC<LandoTextProps> = ({ text, className = '', delayOffset
       // Fallback for environments without Intl.Segmenter
       return text.split('');
     }
-  }, [text]);
+  }, [text, wholeLine]);
 
   return (
     <span className={`inline-flex whitespace-pre ${className}`}>

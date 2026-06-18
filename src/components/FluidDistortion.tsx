@@ -1,10 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'motion/react';
+import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'motion/react';
 import { vertexShader, fluidFragmentShader, displayFragmentShader } from '../shaders';
 import LandoText from './LandoText';
 import Stroke from './Stroke';
 import { Download } from 'lucide-react';
+import MenuOverlay from './MenuOverlay';
+
+const RevealLetter: React.FC<{
+  scrollYProgress: any;
+  start: number;
+  end: number;
+  char: string;
+  isLast: boolean;
+}> = ({ scrollYProgress, start, end, char, isLast }) => {
+  const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
+  return (
+    <motion.span
+      style={{ 
+        opacity, 
+        marginRight: isLast ? 0 : '0.4em' 
+      }}
+    >
+      {char === " " ? "\u00A0" : char}
+    </motion.span>
+  );
+};
 
 function createIceMask(): { 
   group: THREE.Group; 
@@ -18,7 +39,7 @@ function createIceMask(): {
   const scanMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uProgress: { value: 0.0 }, // 0.0 to 1.0
-      uColor: { value: new THREE.Color('#38bdf8') }, // Ice blue glow
+      uColor: { value: new THREE.Color('#0ea5e9') }, // Signature blue glow
       uGlowColor: { value: new THREE.Color('#ffffff') },
       uTime: { value: 0.0 },
       uAlpha: { value: 1.0 },
@@ -273,7 +294,7 @@ const RevealLine: React.FC<{
         variants={barVariants}
         initial="hidden"
         animate={isVisible ? "visible" : "hidden"}
-        className="absolute top-0 bottom-0 bg-[#38bdf8] z-10"
+        className="absolute top-0 bottom-0 bg-[#0ea5e9] z-10"
       />
     </div>
   );
@@ -288,31 +309,78 @@ const FluidDistortion: React.FC = () => {
   const { scrollYProgress } = useScroll();
   
   // Transform values for the shrinking box
-  const boxWidth = useTransform(scrollYProgress, [0.08, 0.25], ['100vw', '32vw']);
-  const boxHeight = useTransform(scrollYProgress, [0.08, 0.25], ['100vh', '45vh']);
+  const boxWidth = useTransform(scrollYProgress, [0.08, 0.38], ['100vw', '32vw']);
+  const boxHeight = useTransform(scrollYProgress, [0.08, 0.38], ['100vh', '45vh']);
   const boxY = useTransform(scrollYProgress, [0.35, 0.55], ['0%', '-20%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.25], [0, 0]);
   const videoOpacity = useTransform(scrollYProgress, [0, 1], [1, 1]);
   
   // Section-specific opacities and offsets
-  const section1Opacity = useTransform(scrollYProgress, [0, 0.4], [1, 1]);
+  const section1Opacity = useTransform(scrollYProgress, [0, 1.0], [1, 1]);
   const marqueeOpacity = useTransform(scrollYProgress, [0.04, 0.1], [0, 1]);
-  const signatureOpacity = useTransform(scrollYProgress, [0.12, 0.14, 1.0], [0, 1, 1]);
-  const signatureScale = useTransform(scrollYProgress, [0.12, 0.25], [0.92, 1]);
-  const signaturePathLength = useTransform(scrollYProgress, [0.12, 0.25], [0, 1]);
+  const signatureOpacity = useTransform(scrollYProgress, [0.15, 0.18, 1.0], [0, 1, 1]);
+  const signatureScale = useTransform(scrollYProgress, [0.15, 0.38], [0.92, 1]);
+  const signaturePathLength = useTransform(scrollYProgress, [0.15, 0.38], [0, 1]);
   
   // Scene coordination: After shrinking, the whole "Landing" scene moves up
-  const sceneY = useTransform(scrollYProgress, [0.27, 0.42], ['0%', '-100%']);
+  const sceneY = useTransform(scrollYProgress, [0.45, 0.85], ['0%', '-100%']);
   
-  const manifestoOpacity = useTransform(scrollYProgress, [0.31, 0.42, 1.0], [0, 1, 1]);
-  const manifestoY = useTransform(scrollYProgress, [0.31, 0.42, 1.0], ['100%', '0%', '0%']);
+  const manifestoOpacity = useTransform(scrollYProgress, [0.52, 0.85, 1.0], [0, 1, 1]);
+  const manifestoY = useTransform(scrollYProgress, [0.52, 0.85, 1.0], ['100%', '0%', '0%']);
 
   // Background Darkening & Effects - Clean dark transition at the end
-  const bgBrightness = useTransform(scrollYProgress, [0.25, 0.40, 1.0], [1.0, 0.30, 0.30]);
-  const bgBlur = useTransform(scrollYProgress, [0.25, 0.40, 1.0], ['blur(0px)', 'blur(4px)', 'blur(4px)']);
+  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.80, 1.0], [0.95, 0.80, 0.80]);
+  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, 0.85], [0, 0.78]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
-  const textColor = useTransform(scrollYProgress, [0.88, 0.94, 1.0], ['#ffffff', '#ffffff', '#ffffff']);
+  const nameColor = useTransform(scrollYProgress, [0.08, 0.38], ['#000000', '#ffffff']);
+  const topUIScale = useTransform(scrollYProgress, [0.08, 0.38], [1, 0.9]);
   const topUIOpacity = 1;
+
+  const [isHeaderLogoHovered, setIsHeaderLogoHovered] = useState(false);
+  const headerLogoColor = useTransform(scrollYProgress, [0.05, 0.15], ['#ffffff', '#0ea5e9']);
+  
+  // Opacity of the top-center header iconic mark container (disappears at 0.05, reappears at 0.15->0.25)
+  const headerIconicMarkOpacity = useTransform(scrollYProgress, [0, 0.05, 0.15, 0.25], [1, 0, 0, 1]);
+
+  // Y displacement: moves the header logo and label lower when they reappear
+  const headerLogoY = useTransform(scrollYProgress, [0.05, 0.15], [0, 60]);
+
+  // Scroll undraw animations for the H logo (when not hovered)
+  const scrollPathLength = useTransform(scrollYProgress, [0, 0.05, 0.15, 0.25], [1, 0, 0, 1]);
+  const scrollFillColor = useTransform(
+    scrollYProgress,
+    [0, 0.02, 0.15, 0.25],
+    ['#ffffff', 'rgba(255,255,255,0)', 'rgba(14,165,233,0)', '#0ea5e9']
+  );
+  const scrollStrokeColor = useTransform(
+    scrollYProgress,
+    [0, 0.05, 0.15, 0.25],
+    ['#ffffff', '#ffffff', 'rgba(14,165,233,0)', 'rgba(14,165,233,0)']
+  );
+  const scrollStrokeWidth = useTransform(
+    scrollYProgress,
+    [0, 0.05, 0.15, 0.25],
+    [2.5, 2.5, 0, 0]
+  );
+  
+  const headerLetters = "WHO AM I".split("");
+
+  // Manifesto section developer emblem transforms
+  const devEmblemPathLength = useTransform(scrollYProgress, [0.52, 0.65], [0, 1]);
+  const devEmblemFillOpacity = useTransform(scrollYProgress, [0.65, 0.72], [0, 1]);
+  const devLetters = "DEVELOPER SINCE 2021".split("");
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const homeVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (homeVideoRef.current) {
+      homeVideoRef.current.muted = true;
+      homeVideoRef.current.play().catch(err => {
+        console.warn("Home page video autoplay failed:", err);
+      });
+    }
+  }, []);
 
   const [isIceManMode, setIsIceManMode] = useState(false);
   const iceManRef = useRef(false);
@@ -320,7 +388,7 @@ const FluidDistortion: React.FC = () => {
 
   const [manifestoSeen, setManifestoSeen] = useState(false);
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (latest >= 0.31 && !manifestoSeen) {
+    if (latest >= 0.52 && !manifestoSeen) {
       setManifestoSeen(true);
     }
   });
@@ -661,19 +729,20 @@ const FluidDistortion: React.FC = () => {
   }, []);
 
   return (
-    <div ref={scrollRef} className="relative w-full h-[130vh] bg-[#0A0F1A]">
+    <div ref={scrollRef} className="relative w-full min-h-screen bg-[#0A0F1A]">
       {/* Background Snow Video - Page Wide */}
       <motion.div 
         style={{ 
           opacity: videoOpacity,
           filter: useTransform(
-            [bgBrightness, bgBlur],
-            ([brightness, blur]) => `brightness(${brightness}) ${blur}`
+            bgBrightness,
+            (brightness) => `brightness(${brightness})`
           )
         }}
-        className="fixed inset-0 z-0 pointer-events-none"
+        className="fixed inset-0 z-[1] pointer-events-none"
       >
         <video 
+          ref={homeVideoRef}
           autoPlay 
           muted 
           loop 
@@ -683,16 +752,13 @@ const FluidDistortion: React.FC = () => {
           <source src={ASSETS.bgVideo} type="video/mp4" />
         </video>
       </motion.div>
-      
-      {/* Frost Creep Vignette */}
-      <motion.div 
-        style={{ 
-          opacity: frostVignette,
-          background: 'radial-gradient(circle, transparent 40%, rgba(186, 230, 253, 0.3) 100%)',
-          backdropFilter: 'blur(2px)'
-        }}
-        className="fixed inset-0 z-[40] pointer-events-none mix-blend-screen"
+
+      {/* End State Overlay */}
+      <motion.div
+        className="fixed inset-0 z-[5] pointer-events-none bg-[#0F172A]"
+        style={{ opacity: endOverlayOpacity }}
       />
+
 
       {/* Scrim Overlay for UI Contrast */}
       <div 
@@ -707,57 +773,65 @@ const FluidDistortion: React.FC = () => {
         <motion.div 
           className="flex justify-between items-start"
           style={{ 
-            color: textColor,
             opacity: topUIOpacity
           }}
         >
-          {/* Top Left: Stacked Name */}
-          <div className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group">
-            <span className="text-3xl md:text-6xl font-black tracking-tighter leading-[0.7] uppercase group-hover:text-sky-400 transition-colors">
-              <LandoText text="HanYu" />
+          <motion.div
+            className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
+            style={{
+              color: nameColor,
+              scale: topUIScale
+            }}
+          >
+            <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
+              <LandoText text="HanYu" className="lando-link-black" />
             </span>
-            <span className="text-3xl md:text-6xl font-black tracking-tighter leading-[0.85] uppercase group-hover:text-sky-400 transition-colors">
-              <LandoText text="Wu" />
+            <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
+              <LandoText text="Wu" className="lando-link-black" />
             </span>
-          </div>
+          </motion.div>
 
           {/* Top Right: Resume Button & Menu */}
-          <div className="pointer-events-auto pt-1 flex items-center gap-3">
+          <motion.div
+            className="pointer-events-auto pt-1 flex items-center gap-2 md:gap-3 origin-top-right"
+            style={{ scale: topUIScale }}
+          >
+              {/* Resume Button */}
               <motion.a
                 href="/HanYu_Wu_Resume.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
-                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-3 py-2 md:px-6 md:py-3 bg-sky-500 rounded-lg transition-all flex items-center gap-2 md:gap-3 group shadow-[0_0_20px_rgba(14,165,233,0.3)]"
+                className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
               >
-                <Download className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                <span className="text-[10px] md:text-sm font-black uppercase tracking-tighter text-white">
-                  <LandoText text="RESUME" />
+                <Download className="w-5 h-5 md:w-6 md:h-6 text-black" />
+                <span className="text-xs md:text-sm font-normal uppercase tracking-normal text-black font-press-start">
+                  <LandoText text="RESUME" className="lando-link-mono" />
                 </span>
               </motion.a>
-          </div>
 
-          {/* Top Center: Iconic Mark */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-4 flex flex-col items-center justify-center gap-2">
-            <svg width="36" height="36" viewBox="0 0 40 40" className="fill-current">
-              <path d="M10 5L5 35H12L15 20H25L22 35H30L35 5H27L24 18H14L17 5H10Z" />
-            </svg>
-            <motion.span 
-              style={{ opacity: marqueeOpacity }}
-              className="text-[8px] font-black tracking-[0.4em] uppercase text-white/50"
-            >
-              WHO AM I
-            </motion.span>
-          </div>
+              {/* Menu Button - Lando Norris Style (Thicker Border & Lines) */}
+              <motion.button
+                onClick={() => setIsMenuOpen(true)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-12 h-12 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-slate-950/40 hover:bg-slate-950/60 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/menu"
+                aria-label="Menu"
+              >
+                <div className="w-5 md:w-6 h-[3px] bg-[#D3ECEA] group-hover/menu:bg-[#0ea5e9] transition-colors rounded-full" />
+                <div className="w-5 md:w-6 h-[3px] bg-[#D3ECEA] group-hover/menu:bg-[#0ea5e9] transition-colors rounded-full" />
+              </motion.button>
+          </motion.div>
+
+
         </motion.div>
 
 
 
       </div>
 
-      {/* Main Experience Section (Full 1000vh) */}
-      <div className="relative h-[1000vh] w-full z-20">
+      {/* Main Experience Section (Full 280vh) */}
+      <div className="relative h-[280vh] w-full z-20">
         <motion.div 
           style={{ opacity: section1Opacity }}
           className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden"
@@ -767,6 +841,66 @@ const FluidDistortion: React.FC = () => {
             style={{ y: sceneY }}
             className="absolute inset-0 flex items-center justify-center"
           >
+            {/* Top Center: Iconic Mark */}
+            <motion.div
+              className="absolute left-1/2 -translate-x-1/2 top-4 flex flex-col items-center justify-center gap-2 cursor-pointer pointer-events-auto transition-colors duration-300 select-none z-40"
+              onMouseEnter={() => setIsHeaderLogoHovered(true)}
+              onMouseLeave={() => setIsHeaderLogoHovered(false)}
+              style={{
+                color: isHeaderLogoHovered ? '#0ea5e9' : headerLogoColor,
+                y: headerLogoY,
+                opacity: headerIconicMarkOpacity,
+              }}
+            >
+              <svg 
+                width="36" 
+                height="36" 
+                viewBox="0 0 40 40" 
+              >
+                <motion.path 
+                  d="M10 5L5 35H12L15 20H25L22 35H30L35 5H27L24 18H14L17 5H10Z"
+                  animate={isHeaderLogoHovered ? {
+                    pathLength: [0, 1],
+                    stroke: '#0ea5e9',
+                    strokeWidth: 2.5,
+                    fill: ['rgba(14,165,233,0)', '#0ea5e9'],
+                  } : {
+                    pathLength: undefined,
+                    stroke: undefined,
+                    strokeWidth: undefined,
+                    fill: 'rgba(0,0,0,0)',
+                  }}
+                  style={{
+                    pathLength: isHeaderLogoHovered ? undefined : scrollPathLength,
+                    stroke: isHeaderLogoHovered ? undefined : scrollStrokeColor,
+                    strokeWidth: isHeaderLogoHovered ? undefined : scrollStrokeWidth,
+                    fill: isHeaderLogoHovered ? undefined : scrollFillColor,
+                  }}
+                  transition={isHeaderLogoHovered ? {
+                    pathLength: { duration: 0.8, ease: "easeInOut" },
+                    fill: { delay: 0.8, duration: 0.4, ease: "easeInOut" }
+                  } : {
+                    duration: 0.3
+                  }}
+                />
+              </svg>
+              <div className="text-[8px] font-black uppercase flex whitespace-nowrap">
+                {headerLetters.map((char, index) => {
+                  const startScroll = 0.15 + (index * 0.18) / headerLetters.length;
+                  const endScroll = startScroll + 0.04;
+                  return (
+                    <RevealLetter
+                      key={index}
+                      scrollYProgress={scrollYProgress}
+                      start={startScroll}
+                      end={endScroll}
+                      char={char}
+                      isLast={index === headerLetters.length - 1}
+                    />
+                  );
+                })}
+              </div>
+            </motion.div>
             {/* Dynamic Background Marquee - Now moves with the scene */}
             <motion.div 
               style={{ opacity: marqueeOpacity }}
@@ -835,28 +969,64 @@ const FluidDistortion: React.FC = () => {
             }}
             className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
-            <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-2 md:gap-3 items-center">
-              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2 drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]">
+            <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
+              {/* Programmer Laurel Emblem & Text above the quote */}
+              <div className="flex flex-col items-center justify-center gap-2 select-none mb-4 md:mb-6">
+                <motion.svg 
+                  width="54" 
+                  height="54" 
+                  viewBox="0 0 40 40" 
+                  className="text-[#0ea5e9]"
+                >
+                  <motion.path 
+                    d="M 17,17 L 14,20 L 17,23 M 23,17 L 26,20 L 23,23 M 21,15 L 19,25 M 13,16 C 9,12 3,12 1,15 C 3,17 8,19 13,20 M 12,20 C 7,17 2,18 1,21 C 3,23 8,24 12,24 M 12,24 C 7,22 3,23 2,26 C 4,27 8,27 12,27 M 27,16 C 31,12 37,12 39,15 C 37,17 32,19 27,20 M 28,20 C 33,17 38,18 39,21 C 37,23 32,24 28,24 M 28,24 C 33,22 37,23 38,26 C 36,27 32,27 28,27"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    fill="currentColor"
+                    style={{
+                      pathLength: devEmblemPathLength,
+                      fillOpacity: devEmblemFillOpacity
+                    }}
+                  />
+                </motion.svg>
+                <div className="text-[9px] md:text-[10px] font-black uppercase flex whitespace-nowrap text-[#0ea5e9]">
+                  {devLetters.map((char, index) => {
+                    const startScroll = 0.55 + (index * 0.15) / devLetters.length;
+                    const endScroll = startScroll + 0.03;
+                    return (
+                      <RevealLetter
+                        key={index}
+                        scrollYProgress={scrollYProgress}
+                        start={startScroll}
+                        end={endScroll}
+                        char={char}
+                        isLast={index === devLetters.length - 1}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2">
                 <RevealLine index={0} isVisible={manifestoSeen}>
-                  <span className="text-[#38bdf8]">Challenging</span> <span className="text-white">the market,</span>
+                  <span className="text-[#0ea5e9]">Challenging</span> <span className="text-[#ffffff]">the market,</span>
                 </RevealLine>
                 <RevealLine index={1} isVisible={manifestoSeen}>
-                  <span className="text-white">building to</span> <span className="text-[#38bdf8]">scale,</span>
+                  <span className="text-[#ffffff]">building to</span> <span className="text-[#0ea5e9]">scale,</span>
                 </RevealLine>
                 <RevealLine index={2} isVisible={manifestoSeen}>
-                  <span className="text-[#38bdf8]">driving results</span>
+                  <span className="text-[#0ea5e9]">driving results</span>
                 </RevealLine>
                 <RevealLine index={3} isVisible={manifestoSeen}>
-                  <span className="text-white">across every vertical.</span>
+                  <span className="text-[#ffffff]">across every vertical.</span>
                 </RevealLine>
                 <RevealLine index={4} isVisible={manifestoSeen}>
-                  <span className="text-white">Shaping an industry</span> <span className="text-[#38bdf8]">legacy</span>
+                  <span className="text-[#ffffff]">Shaping an industry</span> <span className="text-[#0ea5e9]">legacy</span>
                 </RevealLine>
                 <RevealLine index={5} isVisible={manifestoSeen}>
-                  <span className="text-white">through</span> <span className="text-sky-300">vision, execution,</span>
+                  <span className="text-[#ffffff]">through</span> <span className="text-[#0ea5e9]">vision, execution,</span>
                 </RevealLine>
                 <RevealLine index={6} isVisible={manifestoSeen}>
-                  <span className="text-white">and</span> <span className="text-[#38bdf8]">leadership.</span>
+                  <span className="text-[#ffffff]">and</span> <span className="text-[#0ea5e9]">leadership.</span>
                 </RevealLine>
               </h2>
             </div>
@@ -881,6 +1051,15 @@ const FluidDistortion: React.FC = () => {
 
       {/* Grain Finish */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat z-[100]" />
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <MenuOverlay 
+            onClose={() => setIsMenuOpen(false)} 
+            topUIScale={topUIScale}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
