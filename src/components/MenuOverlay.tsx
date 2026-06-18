@@ -8,6 +8,32 @@ interface MenuOverlayProps {
   topUIScale: any;
 }
 
+const curtainTransition = {
+  duration: 0.74,
+  ease: [0.76, 0, 0.24, 1] as const,
+};
+
+const contentVariants = {
+  hidden: { y: -44, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.62,
+      ease: [0.22, 1, 0.36, 1] as const,
+      delay: 0.18,
+    },
+  },
+  exit: {
+    y: -56,
+    opacity: 0,
+    transition: {
+      duration: 0.42,
+      ease: [0.76, 0, 0.24, 1] as const,
+    },
+  },
+};
+
 const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
   const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null);
 
@@ -54,14 +80,28 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.35, ease: 'easeInOut' }}
-      className="fixed inset-0 z-[200] bg-[#0A0F1A] flex flex-row select-none overflow-hidden"
+      initial={{ clipPath: 'inset(0 0 100% 0)', y: '-6%' }}
+      animate={{ clipPath: 'inset(0 0 0% 0)', y: '0%' }}
+      exit={{ clipPath: 'inset(0 0 100% 0)', y: '-8%' }}
+      transition={curtainTransition}
+      className="fixed inset-0 z-[200] bg-[#0A0F1A] select-none overflow-hidden"
     >
+      <motion.div
+        initial={{ scaleY: 0.4, opacity: 0 }}
+        animate={{ scaleY: 1, opacity: 1 }}
+        exit={{ scaleY: 0.25, opacity: 0 }}
+        transition={curtainTransition}
+        className="absolute bottom-0 left-0 right-0 z-[80] h-[3px] origin-top bg-[#0ea5e9] shadow-[0_-10px_26px_rgba(14,165,233,0.45)]"
+      />
+
       {/* Background: playing snow.mp4 */}
-      <div className="absolute inset-0 z-1 pointer-events-none select-none">
+      <motion.div
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="absolute inset-0 z-[1] pointer-events-none select-none"
+      >
         <video
           ref={videoRef}
           src="/snow.mp4"
@@ -71,10 +111,16 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
           playsInline
           className="w-full h-full object-cover opacity-35"
         />
-      </div>
+      </motion.div>
 
       {/* Top Header UI - Match position, styles, and scale of FluidDistortion header */}
-      <div className="absolute top-0 left-0 right-0 z-50 select-none pointer-events-none px-2 pt-2 md:px-4 md:pt-4 flex justify-between items-start">
+      <motion.div
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="absolute top-0 left-0 right-0 z-50 select-none pointer-events-none px-2 pt-2 md:px-4 md:pt-4 flex justify-between items-start"
+      >
         {/* Top Left Logo/Name */}
         <motion.div
           className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
@@ -121,10 +167,16 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             <X className="w-5 md:w-6 h-5 md:h-6 text-[#0ea5e9] group-hover/close:text-white transition-colors" />
           </motion.button>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Left Section: 4 Images in a two-column grid */}
-      <div className="hidden lg:flex w-[48%] h-full items-center justify-center gap-6 p-8 overflow-hidden pointer-events-none z-10">
+      <motion.div
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="hidden lg:flex absolute inset-y-0 left-0 w-[48%] items-center justify-center gap-6 p-8 overflow-hidden pointer-events-none z-10"
+      >
         {/* Column 1 - Left Column (moves down when cursor moves up) */}
         <motion.div 
           style={{ y: leftColY }} 
@@ -182,10 +234,16 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             />
           </div>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* Right Section: Vertical Menu Links (Centered) */}
-      <div className="flex-1 lg:w-[52%] h-full flex flex-col justify-center items-center z-10 relative">
+      <motion.div
+        variants={contentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="absolute inset-y-0 right-0 w-full lg:w-[52%] flex flex-col justify-center items-center z-10"
+      >
         {/* Links Container */}
         <div className="flex flex-col items-center gap-0.5 md:gap-1">
           {menuLinks.map((link, index) => (
@@ -243,7 +301,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             </span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
