@@ -10,6 +10,119 @@ import MenuOverlay from './MenuOverlay';
 const FINAL_SCROLL_PROGRESS = 1;
 const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
 const FINAL_SNOW_FRAME_TIME = 5.8;
+const GALLERY_SCROLL_HEIGHT = '1750vh';
+const MANIFESTO_EXIT_START = 0.74;
+const MANIFESTO_EXIT_END = 0.82;
+const GALLERY_REVEAL_START = 0.85;
+const GALLERY_REVEAL_END = 0.89;
+const GALLERY_FINAL_X = '-290vw';
+
+const galleryItems = [
+  {
+    date: 'SEP 2022',
+    title: 'CAL POLY',
+    meta: 'FIRST ARRIVAL / SAN LUIS OBISPO',
+    src: '/calpoly.jpg',
+    left: '56vw',
+    top: '18vh',
+    width: '26vw',
+    minWidth: '300px',
+    maxWidth: '480px',
+    aspectRatio: '670 / 432',
+    muted: false,
+  },
+  {
+    date: 'JUN 2023 - AUG 2023',
+    title: 'SPARKLI AI',
+    meta: 'SOFTWARE ENGINEER INTERN / PALO ALTO',
+    src: '/sparkliai.png',
+    left: '126vw',
+    top: '50vh',
+    width: '28vw',
+    minWidth: '320px',
+    maxWidth: '520px',
+    aspectRatio: '3320 / 1894',
+    muted: false,
+  },
+  {
+    date: 'OCT 2023 - AUG 2025',
+    title: 'HACK4IMPACT',
+    meta: 'TECH LEAD / SAN LUIS OBISPO',
+    src: '/hack4impact.png',
+    left: '164vw',
+    top: '16vh',
+    width: '30vw',
+    minWidth: '340px',
+    maxWidth: '560px',
+    aspectRatio: '3010 / 1530',
+    muted: false,
+  },
+  {
+    date: 'JUN 2024 - SEP 2025',
+    title: 'CAL POLY CSSE',
+    meta: 'MOBILE APP TEAM LEAD / SAN LUIS OBISPO',
+    src: '/csse.png',
+    left: '202vw',
+    top: '52vh',
+    width: '26vw',
+    minWidth: '320px',
+    maxWidth: '500px',
+    aspectRatio: '3072 / 2048',
+    muted: false,
+  },
+  {
+    date: 'JAN 2025 - AUG 2025',
+    title: 'LIVIN',
+    meta: 'DEVELOPMENT TECH LEAD / SAN LUIS OBISPO',
+    src: '/livin.png',
+    left: '238vw',
+    top: '16vh',
+    width: '30vw',
+    minWidth: '340px',
+    maxWidth: '560px',
+    aspectRatio: '3020 / 1532',
+    muted: false,
+  },
+  {
+    date: 'SEP 2025 - DEC 2025',
+    title: 'YUANSHENG REFURBISHER',
+    meta: 'CO-FOUNDER / LOS ANGELES',
+    src: '/refurbisher.jpg',
+    left: '276vw',
+    top: '46vh',
+    width: '18vw',
+    minWidth: '220px',
+    maxWidth: '320px',
+    aspectRatio: '1289 / 2269',
+    muted: false,
+  },
+  {
+    date: 'JAN 2026 - MAY 2026',
+    title: 'CAMPUSIRL',
+    meta: 'FOUNDER & LEAD ENGINEER / SAN LUIS OBISPO',
+    src: '/campusirl.png',
+    left: '304vw',
+    top: '12vh',
+    width: '18vw',
+    minWidth: '220px',
+    maxWidth: '320px',
+    aspectRatio: '1290 / 2796',
+    muted: false,
+  },
+  {
+    date: 'JUN 2026',
+    title: 'GRADUATION',
+    meta: 'CAL POLY / SAN LUIS OBISPO',
+    src: '/grad.jpg',
+    left: '332vw',
+    top: '48vh',
+    width: '28vw',
+    minWidth: '340px',
+    maxWidth: '540px',
+    aspectRatio: '2304 / 1536',
+    muted: false,
+  },
+];
 
 function lockVideoToFinalFrame(video: HTMLVideoElement) {
   if (Number.isFinite(video.duration)) {
@@ -336,16 +449,22 @@ const FluidDistortion: React.FC = () => {
   const signaturePathLength = useTransform(scrollYProgress, [0.15, 0.38], [0, 1]);
   
   // Scene coordination: After shrinking, the whole "Landing" scene moves up
-  const sceneY = useTransform(scrollYProgress, [0.45, FINAL_SCROLL_PROGRESS], ['0%', '-100%']);
+  const sceneY = useTransform(scrollYProgress, [0.45, 0.64], ['0%', '-100%']);
   
-  const manifestoOpacity = useTransform(scrollYProgress, [0.52, 0.92, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
-  const manifestoY = useTransform(scrollYProgress, [0.52, FINAL_SCROLL_PROGRESS], ['100%', '0%']);
+  const manifestoOpacity = useTransform(scrollYProgress, [0.50, 0.58, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
+  const manifestoY = useTransform(scrollYProgress, [0.50, 0.68, MANIFESTO_EXIT_START, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS], ['100%', '0%', '0%', '-125%', '-125%']);
+  const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
+  const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
+  const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#182015', '#aeb4a8', '#f4f3ed']);
+  const galleryLineOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], [0.08, 0.12, 0.18]);
+  const galleryTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#eef1e7', '#3a4235', '#20271d']);
+  const gallerySubTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#aeb4a8', '#5a6255', '#3a4235']);
 
   // Background Darkening & Effects - Clean dark transition at the end
-  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [0.95, 0.80, 0.80]);
-  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, FINAL_SCROLL_PROGRESS], [0, 0.78]);
+  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [0.95, 0.80, 0.88]);
+  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, 0.82, 0.90, FINAL_SCROLL_PROGRESS], [0, 0.78, 0.22, 0]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
-  const nameColor = useTransform(scrollYProgress, [0.08, 0.38], ['#000000', '#ffffff']);
+  const nameColor = useTransform(scrollYProgress, [0.08, 0.38, 0.82, FINAL_SCROLL_PROGRESS], ['#000000', '#ffffff', '#20271d', '#20271d']);
   const topUIScale = useTransform(scrollYProgress, [0.08, 0.38], [1, 0.9]);
   const topUIOpacity = 1;
 
@@ -882,8 +1001,8 @@ const FluidDistortion: React.FC = () => {
 
       </div>
 
-      {/* Main Experience Section (Full 280vh) */}
-      <div className="relative h-[280vh] w-full z-20">
+      {/* Main Experience Section */}
+      <div className="relative w-full z-20" style={{ height: GALLERY_SCROLL_HEIGHT }}>
         <motion.div 
           style={{ opacity: section1Opacity }}
           className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden"
@@ -961,14 +1080,14 @@ const FluidDistortion: React.FC = () => {
                 <motion.div 
                   animate={{ x: [0, -2000] }}
                   transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap text-[6vw] font-black italic tracking-tighter text-blue-950/60 leading-none mb-4 [word-spacing:1vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950/60 leading-[1.35] mb-1 [word-spacing:1vw]"
                 >
                   FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
                 </motion.div>
                 <motion.div 
                   animate={{ x: [-2000, 0] }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap text-[6vw] font-black italic tracking-tighter text-sky-900/40 leading-none [word-spacing:1vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/40 leading-[1.35] [word-spacing:1vw]"
                 >
                   FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
                 </motion.div>
@@ -1019,7 +1138,7 @@ const FluidDistortion: React.FC = () => {
               opacity: manifestoOpacity,
               y: manifestoY
             }}
-            className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none p-6 md:p-10"
+            className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10 origin-top"
           >
             <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
               {/* Programmer Laurel Emblem & Text above the quote */}
@@ -1040,11 +1159,11 @@ const FluidDistortion: React.FC = () => {
                     }}
                   />
                 </motion.svg>
-                <div className="text-[9px] md:text-[10px] font-black uppercase whitespace-nowrap text-[#0ea5e9] tracking-[0.45em] pl-[0.45em]">
+                <div className="text-[9px] font-press-start md:text-[10px] font-black uppercase whitespace-nowrap text-[#0ea5e9] tracking-[0.45em] pl-[0.45em]">
                   BUILDING SINCE 2021
                 </div>
               </div>
-              <h2 className="text-[7.5vw] md:text-[4.8vw] font-black leading-[0.98] tracking-tighter uppercase italic select-none px-4 flex flex-col items-center gap-1.5 md:gap-2">
+              <h2 className="font-press-start text-[clamp(0.8rem,3.05vw,3.75rem)] font-normal leading-[1.38] tracking-normal uppercase select-none px-4 flex flex-col items-center gap-2 md:gap-3">
                 <RevealLine index={0} isVisible={manifestoSeen}>
                   <span className="text-[#0ea5e9]">Challenging</span> <span className="text-[#ffffff]">the market,</span>
                 </RevealLine>
@@ -1068,6 +1187,98 @@ const FluidDistortion: React.FC = () => {
                 </RevealLine>
               </h2>
             </div>
+          </motion.div>
+
+          {/* Scroll Editorial Gallery */}
+          <motion.div
+            style={{ opacity: galleryOpacity, backgroundColor: galleryBgColor }}
+            className="absolute inset-0 z-50 overflow-hidden pointer-events-none"
+          >
+            <motion.div
+              style={{ opacity: galleryLineOpacity }}
+              className="absolute inset-0 pointer-events-none"
+            >
+              <svg viewBox="0 0 1400 900" className="h-full w-full text-[#27311f]">
+                {[...Array(10)].map((_, i) => (
+                  <path
+                    key={i}
+                    d={`M${-120 + i * 80},${70 + i * 72} C${180 + i * 50},${-80 + i * 30} ${360 + i * 95},${300 + i * 28} ${660 + i * 50},${160 + i * 42} S${1180 + i * 38},${500 + i * 36} 1520,${170 + i * 54}`}
+                    stroke="currentColor"
+                    fill="none"
+                    strokeWidth="1.2"
+                  />
+                ))}
+              </svg>
+            </motion.div>
+
+            <motion.div
+              style={{ x: galleryX }}
+              className="absolute left-0 top-0 h-[150vh] w-[390vw]"
+            >
+              <div className="absolute left-[4vw] top-[14vh] max-w-[55vw] select-none">
+                <p className="font-press-start text-[9px] uppercase tracking-normal text-[#0ea5e9] mb-5">
+                  AFTER BUILDING TO SCALE
+                </p>
+                <h3 className="text-[12vw] leading-[0.82] font-black uppercase tracking-normal text-[#eef1e7] mix-blend-difference">
+                  Across
+                  <br />
+                  every
+                  <br />
+                  vertical.
+                </h3>
+              </div>
+
+              <div className="absolute left-[92vw] top-[30vh] w-[26vw] min-w-[320px] max-w-[440px] select-none">
+                <p className="text-[clamp(1.5rem,2.3vw,3rem)] font-black leading-[0.92] tracking-normal text-[#d7d9cf]">
+                  The work keeps moving: launched, shipped, refined, and scaled through each scroll.
+                </p>
+                <div className="mt-8 h-12 w-36 text-[#0ea5e9]">
+                  <Stroke className="h-full w-full" color="#0ea5e9" pathLength={1} strokeWidth={3} />
+                </div>
+              </div>
+
+              {galleryItems.map((item) => (
+                <figure
+                  key={item.title}
+                  style={{
+                    left: item.left,
+                    top: item.top,
+                    width: item.width,
+                    minWidth: item.minWidth,
+                    maxWidth: item.maxWidth,
+                  }}
+                  className="absolute select-none pointer-events-auto group cursor-pointer"
+                >
+                  <figcaption className="mb-3 max-w-full uppercase tracking-normal">
+                    <p className="font-press-start text-[8px] leading-[1.6] text-[#0ea5e9]">
+                      {item.date}
+                    </p>
+                    <motion.h4
+                      style={{ color: galleryTextColor }}
+                      className="mt-2 font-press-start text-[10px] leading-[1.45] transition-colors duration-300 group-hover:text-[#0ea5e9]!"
+                    >
+                      {item.title}
+                    </motion.h4>
+                    <motion.p
+                      style={{ color: gallerySubTextColor }}
+                      className="mt-2 font-press-start text-[6px] leading-[1.7]"
+                    >
+                      {item.meta}
+                    </motion.p>
+                  </figcaption>
+                  <div className="overflow-hidden rounded-sm border border-[#20271d]/10 bg-black/5 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/40 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5">
+                    <motion.img
+                      src={item.src}
+                      alt={item.title}
+                      style={{ aspectRatio: item.aspectRatio }}
+                      whileHover={{ scale: 1.04 }}
+                      transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+                      className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
+                    />
+                  </div>
+                </figure>
+              ))}
+            </motion.div>
           </motion.div>
 
           {/* Topographic Lines Overlay */}

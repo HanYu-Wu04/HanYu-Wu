@@ -14,25 +14,43 @@ const curtainTransition = {
 };
 
 const contentVariants = {
-  hidden: { y: -44, opacity: 0 },
+  hidden: { y: -24 },
   visible: {
     y: 0,
-    opacity: 1,
     transition: {
-      duration: 0.62,
-      ease: [0.22, 1, 0.36, 1] as const,
-      delay: 0.18,
+      duration: 0.74,
+      ease: [0.76, 0, 0.24, 1] as const,
+      delay: 0.04,
     },
   },
   exit: {
-    y: -56,
-    opacity: 0,
+    y: -22,
     transition: {
-      duration: 0.42,
+      duration: 0.74,
       ease: [0.76, 0, 0.24, 1] as const,
     },
   },
 };
+
+const revealItem = (delay = 0) => ({
+  initial: { clipPath: 'inset(0 0 100% 0)', y: -10 },
+  animate: {
+    clipPath: 'inset(0 0 0% 0)',
+    y: 0,
+    transition: {
+      clipPath: { duration: 0.58, ease: [0.76, 0, 0.24, 1] as const, delay },
+      y: { duration: 0.58, ease: [0.76, 0, 0.24, 1] as const, delay },
+    },
+  },
+  exit: {
+    clipPath: 'inset(0 0 100% 0)',
+    y: -10,
+    transition: {
+      clipPath: { duration: 0.48, ease: [0.76, 0, 0.24, 1] as const, delay: Math.max(0, delay * 0.35) },
+      y: { duration: 0.48, ease: [0.76, 0, 0.24, 1] as const, delay: Math.max(0, delay * 0.35) },
+    },
+  },
+});
 
 const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
   const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null);
@@ -87,11 +105,11 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
       className="fixed inset-0 z-[200] bg-[#0A0F1A] select-none overflow-hidden"
     >
       <motion.div
-        initial={{ scaleY: 0.4, opacity: 0 }}
-        animate={{ scaleY: 1, opacity: 1 }}
-        exit={{ scaleY: 0.25, opacity: 0 }}
+        initial={{ y: '-4px', opacity: 0 }}
+        animate={{ y: '100vh', opacity: 1 }}
+        exit={{ y: '-4px', opacity: 1 }}
         transition={curtainTransition}
-        className="absolute bottom-0 left-0 right-0 z-[80] h-[3px] origin-top bg-[#0ea5e9] shadow-[0_-10px_26px_rgba(14,165,233,0.45)]"
+        className="absolute left-0 right-0 top-0 z-[80] h-[3px] bg-[#0ea5e9] shadow-[0_-10px_26px_rgba(14,165,233,0.45)]"
       />
 
       {/* Background: playing snow.mp4 */}
@@ -123,6 +141,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
       >
         {/* Top Left Logo/Name */}
         <motion.div
+          {...revealItem(0.06)}
           className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
           style={{
             color: '#ffffff',
@@ -139,6 +158,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
 
         {/* Top Right Buttons: Resume & Close */}
         <motion.div
+          {...revealItem(0.12)}
           className="pointer-events-auto pt-1 flex items-center gap-2 md:gap-3 origin-top-right"
           style={{ scale: topUIScale }}
         >
@@ -183,7 +203,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
           className="flex flex-col gap-6 w-[200px] xl:w-[240px]"
         >
           {/* Image 1: top.png (HOME) */}
-          <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.12)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/top.png" 
               alt="Home Preview" 
@@ -192,9 +212,9 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
-          </div>
+          </motion.div>
           {/* Image 2: github.png (GITHUB) */}
-          <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.24)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/github.png" 
               alt="GitHub Profile Preview" 
@@ -203,7 +223,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Column 2 - Right Column (moves up when cursor moves up) */}
@@ -212,7 +232,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
           className="flex flex-col gap-6 w-[200px] xl:w-[240px] pt-12"
         >
           {/* Image 3: linkedin.jpeg (LINKEDIN) */}
-          <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.18)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/linkedin.jpeg" 
               alt="LinkedIn Profile Preview" 
@@ -221,9 +241,9 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
-          </div>
+          </motion.div>
           {/* Image 4: base.png (CONTACT) */}
-          <div className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.30)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/base.png" 
               alt="Contact Preview" 
@@ -232,7 +252,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
-          </div>
+          </motion.div>
         </motion.div>
       </motion.div>
 
@@ -245,15 +265,15 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
         className="absolute inset-y-0 right-0 w-full lg:w-[52%] flex flex-col justify-center items-center z-10"
       >
         {/* Links Container */}
-        <div className="flex flex-col items-center gap-0.5 md:gap-1">
+        <div className="flex flex-col items-center gap-0">
           {menuLinks.map((link, index) => (
-            <div key={index} className="relative py-0 flex flex-col items-center justify-center w-full">
+            <motion.div key={index} {...revealItem(0.14 + index * 0.09)} className="relative py-0 flex flex-col items-center justify-center w-full">
               <a
                 href={link.href}
                 target={link.target}
                 rel={link.rel}
                 onClick={link.onClick}
-                className="group text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black uppercase italic tracking-tighter text-white/95 hover:text-[#0ea5e9] transition-colors cursor-pointer leading-none z-10 text-center"
+                className="group text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal font-press-start uppercase tracking-normal text-white/95 hover:text-[#0ea5e9] transition-colors cursor-pointer leading-[0.9] z-10 text-center"
                 onMouseEnter={() => setActiveHoverIndex(index)}
                 onMouseLeave={() => setActiveHoverIndex(null)}
               >
@@ -278,11 +298,11 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
                   />
                 </motion.svg>
               )}
-            </div>
+            </motion.div>
           ))}
 
           {/* Programmer laurels emblem at the bottom of links */}
-          <div className="flex flex-col items-center gap-1 select-none mt-8 border-t border-white/10 pt-6 w-full max-w-xs opacity-75 text-center">
+          <motion.div {...revealItem(0.52)} className="flex flex-col items-center gap-1 select-none mt-8 border-t border-white/10 pt-6 w-full max-w-xs opacity-75 text-center">
             <svg 
               width="24" 
               height="24" 
@@ -299,7 +319,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             <span className="text-[9px] font-black uppercase text-[#0ea5e9] tracking-widest mt-1">
               BUILDING SINCE 2021
             </span>
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </motion.div>
