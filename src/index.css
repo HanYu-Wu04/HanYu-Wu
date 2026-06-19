@@ -56,6 +56,10 @@
     color: #000000;
   }
 
+  .lando-link-cyan span:last-child {
+    color: #0ea5e9;
+  }
+
   .lando-link-compact .lando-link {
     height: 0.82em;
     line-height: 0.82;

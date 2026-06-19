@@ -11,10 +11,10 @@ const FINAL_SCROLL_PROGRESS = 1;
 const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
 const FINAL_SNOW_FRAME_TIME = 5.8;
 const GALLERY_SCROLL_HEIGHT = '1750vh';
-const MANIFESTO_EXIT_START = 0.74;
-const MANIFESTO_EXIT_END = 0.82;
-const GALLERY_REVEAL_START = 0.85;
-const GALLERY_REVEAL_END = 0.89;
+const MANIFESTO_EXIT_START = 0.72;
+const MANIFESTO_EXIT_END = 0.80;
+const GALLERY_REVEAL_START = 0.78;
+const GALLERY_REVEAL_END = 0.82;
 const GALLERY_FINAL_X = '-370vw';
 
 const galleryItems = [
@@ -24,7 +24,7 @@ const galleryItems = [
     meta: 'FIRST ARRIVAL / SAN LUIS OBISPO',
     src: '/calpoly.jpg',
     left: '56vw',
-    top: '18vh',
+    top: '22vh',
     width: '26vw',
     minWidth: '300px',
     maxWidth: '480px',
@@ -37,7 +37,7 @@ const galleryItems = [
     meta: 'SOFTWARE ENGINEER INTERN / PALO ALTO',
     src: '/sparkliai.png',
     left: '126vw',
-    top: '50vh',
+    top: '44vh',
     width: '28vw',
     minWidth: '320px',
     maxWidth: '520px',
@@ -50,12 +50,13 @@ const galleryItems = [
     meta: 'TECH LEAD / SAN LUIS OBISPO',
     src: '/hack4impact.png',
     left: '164vw',
-    top: '16vh',
+    top: '20vh',
     width: '30vw',
     minWidth: '340px',
     maxWidth: '560px',
     aspectRatio: '3010 / 1530',
     muted: false,
+    url: 'https://github.com/hack4impact-calpoly/Creek-Lands-Conservation',
   },
   {
     date: 'JUN 2024 - SEP 2025',
@@ -63,7 +64,7 @@ const galleryItems = [
     meta: 'MOBILE APP TEAM LEAD / SAN LUIS OBISPO',
     src: '/csse.png',
     left: '202vw',
-    top: '52vh',
+    top: '46vh',
     width: '26vw',
     minWidth: '320px',
     maxWidth: '500px',
@@ -76,12 +77,13 @@ const galleryItems = [
     meta: 'DEVELOPMENT TECH LEAD / SAN LUIS OBISPO',
     src: '/livin.png',
     left: '238vw',
-    top: '16vh',
+    top: '20vh',
     width: '30vw',
     minWidth: '340px',
     maxWidth: '560px',
     aspectRatio: '3020 / 1532',
     muted: false,
+    url: 'https://getlivin.org/',
   },
   {
     date: 'SEP 2025 - DEC 2025',
@@ -89,7 +91,7 @@ const galleryItems = [
     meta: 'CO-FOUNDER / LOS ANGELES',
     src: '/refurbisher.jpg',
     left: '276vw',
-    top: '46vh',
+    top: '36vh',
     width: '18vw',
     minWidth: '220px',
     maxWidth: '320px',
@@ -102,12 +104,13 @@ const galleryItems = [
     meta: 'FOUNDER & LEAD ENGINEER / SAN LUIS OBISPO',
     src: '/campusirl.png',
     left: '304vw',
-    top: '12vh',
-    width: '18vw',
-    minWidth: '220px',
-    maxWidth: '320px',
+    top: '18vh',
+    width: '13vw',
+    minWidth: '160px',
+    maxWidth: '240px',
     aspectRatio: '1290 / 2796',
     muted: false,
+    url: 'https://campusirl.com',
   },
   {
     date: 'JUN 2026',
@@ -115,7 +118,7 @@ const galleryItems = [
     meta: 'CAL POLY / SAN LUIS OBISPO',
     src: '/grad.jpg',
     left: '332vw',
-    top: '48vh',
+    top: '42vh',
     width: '28vw',
     minWidth: '340px',
     maxWidth: '540px',
@@ -426,6 +429,77 @@ const RevealLine: React.FC<{
   );
 };
 
+const GalleryCard: React.FC<{
+  item: typeof galleryItems[number];
+  index: number;
+  gallerySeen: boolean;
+  galleryTextColor: any;
+  gallerySubTextColor: any;
+}> = ({ item, index, gallerySeen, galleryTextColor, gallerySubTextColor }) => {
+  const handleClick = () => {
+    if (item.url) {
+      window.open(item.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  return (
+    <figure
+      style={{
+        left: item.left,
+        top: item.top,
+        width: item.width,
+        minWidth: item.minWidth,
+        maxWidth: item.maxWidth,
+      }}
+      className="absolute select-none pointer-events-auto group cursor-pointer"
+      onClick={handleClick}
+    >
+      <figcaption className="mb-3 max-w-full uppercase tracking-normal flex flex-col items-start gap-0.5">
+        <RevealLine index={index * 2 + 1} isVisible={gallerySeen}>
+          <p className="font-press-start text-[8px] leading-[1.6] text-[#0ea5e9]">
+            {item.date}
+          </p>
+        </RevealLine>
+        <RevealLine index={index * 2 + 2} isVisible={gallerySeen}>
+          <motion.h4
+            style={{ color: galleryTextColor }}
+            className="mt-2 font-press-start text-[10px] leading-[1.45] transition-colors duration-300 group-hover:text-[#0ea5e9]!"
+          >
+            {item.title}
+          </motion.h4>
+        </RevealLine>
+        <RevealLine index={index * 2 + 3} isVisible={gallerySeen}>
+          <motion.p
+            style={{ color: gallerySubTextColor }}
+            className="mt-2 font-press-start text-[6px] leading-[1.7]"
+          >
+            {item.meta}
+          </motion.p>
+        </RevealLine>
+      </figcaption>
+      
+      <div className="relative overflow-hidden rounded-sm border border-[#20271d]/10 bg-black/5 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/40 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5">
+        <motion.img
+          src={item.src}
+          alt={item.title}
+          style={{ aspectRatio: item.aspectRatio }}
+          whileHover={{ scale: 1.04 }}
+          transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+          className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
+        />
+
+        {item.url && (
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none select-none z-10">
+            <div className="bg-black/80 px-3 py-1.5 rounded text-[8px] font-press-start text-[#0ea5e9] tracking-wider uppercase">
+              Open Site ↗
+            </div>
+          </div>
+        )}
+      </div>
+    </figure>
+  );
+};
+
 const FluidDistortion: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -452,7 +526,7 @@ const FluidDistortion: React.FC = () => {
   const sceneY = useTransform(scrollYProgress, [0.45, 0.64], ['0%', '-100%']);
   
   const manifestoOpacity = useTransform(scrollYProgress, [0.50, 0.58, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
-  const manifestoY = useTransform(scrollYProgress, [0.50, 0.68, MANIFESTO_EXIT_START, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS], ['100%', '0%', '0%', '-125%', '-125%']);
+  const manifestoY = useTransform(scrollYProgress, [0.50, 0.68, MANIFESTO_EXIT_START, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS], ['60%', '0%', '0%', '-125%', '-125%']);
   const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
   const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
   const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#182015', '#aeb4a8', '#f4f3ed']);
@@ -518,12 +592,16 @@ const FluidDistortion: React.FC = () => {
 
   const [manifestoSeen, setManifestoSeen] = useState(false);
   const [gallerySeen, setGallerySeen] = useState(false);
+  const [footerSeen, setFooterSeen] = useState(false);
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (latest >= 0.52 && !manifestoSeen) {
       setManifestoSeen(true);
     }
     if (latest >= GALLERY_REVEAL_START && !gallerySeen) {
       setGallerySeen(true);
+    }
+    if (latest >= 0.96 && !footerSeen) {
+      setFooterSeen(true);
     }
 
     const video = homeVideoRef.current;
@@ -1142,7 +1220,7 @@ const FluidDistortion: React.FC = () => {
               opacity: manifestoOpacity,
               y: manifestoY
             }}
-            className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10 origin-top"
+            className="absolute inset-0 z-[60] flex items-start justify-center pt-[10vh] md:pt-[12vh] pointer-events-none p-6 md:p-10 origin-top"
           >
             <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
               {/* Programmer Laurel Emblem & Text above the quote */}
@@ -1249,46 +1327,15 @@ const FluidDistortion: React.FC = () => {
                 </div>
               </div>
 
-              {galleryItems.map((item) => (
-                <figure
+              {galleryItems.map((item, index) => (
+                <GalleryCard
                   key={item.title}
-                  style={{
-                    left: item.left,
-                    top: item.top,
-                    width: item.width,
-                    minWidth: item.minWidth,
-                    maxWidth: item.maxWidth,
-                  }}
-                  className="absolute select-none pointer-events-auto group cursor-pointer"
-                >
-                  <figcaption className="mb-3 max-w-full uppercase tracking-normal">
-                    <p className="font-press-start text-[8px] leading-[1.6] text-[#0ea5e9]">
-                      {item.date}
-                    </p>
-                    <motion.h4
-                      style={{ color: galleryTextColor }}
-                      className="mt-2 font-press-start text-[10px] leading-[1.45] transition-colors duration-300 group-hover:text-[#0ea5e9]!"
-                    >
-                      {item.title}
-                    </motion.h4>
-                    <motion.p
-                      style={{ color: gallerySubTextColor }}
-                      className="mt-2 font-press-start text-[6px] leading-[1.7]"
-                    >
-                      {item.meta}
-                    </motion.p>
-                  </figcaption>
-                  <div className="overflow-hidden rounded-sm border border-[#20271d]/10 bg-black/5 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/40 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5">
-                    <motion.img
-                      src={item.src}
-                      alt={item.title}
-                      style={{ aspectRatio: item.aspectRatio }}
-                      whileHover={{ scale: 1.04 }}
-                      transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
-                      className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
-                    />
-                  </div>
-                </figure>
+                  item={item}
+                  index={index}
+                  gallerySeen={gallerySeen}
+                  galleryTextColor={galleryTextColor}
+                  gallerySubTextColor={gallerySubTextColor}
+                />
               ))}
 
               {/* Lando Norris Style Split Section - Nested as the final slide */}
@@ -1325,11 +1372,18 @@ const FluidDistortion: React.FC = () => {
                     <div className="flex flex-col items-center text-center group">
                       <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
                         <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
-                          GITHUB
+                          <RevealLine index={0} isVisible={footerSeen}>
+                            GITHUB
+                          </RevealLine>
                         </span>
-                        <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                        <motion.span 
+                          initial={{ opacity: 0 }}
+                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: 0 * 0.22 + 0.30, duration: 0.3 }}
+                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
+                        >
                           Hub
-                        </span>
+                        </motion.span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                         Explore source code, personal projects, repositories, and developer contributions.
@@ -1350,11 +1404,18 @@ const FluidDistortion: React.FC = () => {
                     <div className="flex flex-col items-center text-center group">
                       <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
                         <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
-                          LINKEDIN
+                          <RevealLine index={1} isVisible={footerSeen}>
+                            LINKEDIN
+                          </RevealLine>
                         </span>
-                        <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                        <motion.span 
+                          initial={{ opacity: 0 }}
+                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: 1 * 0.22 + 0.30, duration: 0.3 }}
+                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
+                        >
                           In
-                        </span>
+                        </motion.span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                         Connect for professional networking, career updates, and industry experience.
@@ -1375,11 +1436,18 @@ const FluidDistortion: React.FC = () => {
                     <div className="flex flex-col items-center text-center group">
                       <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
                         <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
-                          CONTACT
+                          <RevealLine index={2} isVisible={footerSeen}>
+                            CONTACT
+                          </RevealLine>
                         </span>
-                        <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                        <motion.span 
+                          initial={{ opacity: 0 }}
+                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: 2 * 0.22 + 0.30, duration: 0.3 }}
+                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
+                        >
                           Mail
-                        </span>
+                        </motion.span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                         Reach out directly for freelance inquiries, collaborations, or general questions.
