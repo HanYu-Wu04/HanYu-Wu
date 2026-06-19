@@ -11,8 +11,8 @@ const FINAL_SCROLL_PROGRESS = 1;
 const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
 const FINAL_SNOW_FRAME_TIME = 5.8;
 const GALLERY_FINAL_X = '-370vw';
-const MOBILE_GALLERY_FINAL_Y = '-590vh';
-const MOBILE_GALLERY_FOOTER_TOP = '590vh';
+const MOBILE_GALLERY_FINAL_Y = '-730vh';
+const MOBILE_GALLERY_FOOTER_TOP = '730vh';
 
 const galleryItems = [
   {
@@ -105,7 +105,7 @@ const galleryItems = [
     aspectRatio: '1289 / 2269',
     muted: false,
     type: 'photo' as const,
-    topMobile: '375vh'
+    topMobile: '390vh'
   },
   {
     date: 'JAN 2026 - MAY 2026',
@@ -121,7 +121,7 @@ const galleryItems = [
     muted: false,
     url: 'https://campusirl.com',
     type: 'mobile' as const,
-    topMobile: '445vh'
+    topMobile: '510vh'
   },
   {
     date: 'JUN 2026',
@@ -136,7 +136,7 @@ const galleryItems = [
     aspectRatio: '2304 / 1536',
     muted: false,
     type: 'photo' as const,
-    topMobile: '525vh'
+    topMobile: '640vh'
   },
 ];
 
@@ -640,9 +640,9 @@ const FluidDistortion: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const GALLERY_REVEAL_START = isMobileViewport ? 0.465 : 0.715;
-  const GALLERY_REVEAL_END = isMobileViewport ? 0.48 : 0.73;
-  const MANIFESTO_EXIT_END = isMobileViewport ? 0.455 : 0.705;
+  const GALLERY_REVEAL_START = isMobileViewport ? 0.405 : 0.715;
+  const GALLERY_REVEAL_END = isMobileViewport ? 0.42 : 0.73;
+  const MANIFESTO_EXIT_END = isMobileViewport ? 0.38 : 0.705;
  
   const sceneExitStart = isMobileViewport ? 0.2725 : 0.45;
   const sceneExitEnd = isMobileViewport ? 0.2875 : 0.525;

@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
-const MIN_LOADER_MS = 1300;
+const MIN_LOADER_MS = 650;
+const MAX_CRITICAL_ASSET_WAIT_MS = 900;
 const H_MARK_PATH =
   'M-10 -15L-15 15H-8L-5 0H5L2 15H10L15 -15H7L4 -2H-6L-3 -15H-10Z';
 
-const imageAssets = [
+const criticalImageAssets = [
   '/base.png',
   '/top.png',
-  '/github.png',
-  '/linkedin.jpeg',
 ];
 
 function wait(ms: number) {
@@ -25,28 +24,6 @@ function preloadImage(src: string) {
   });
 }
 
-function preloadVideoMetadata(src: string) {
-  return new Promise<void>((resolve) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.muted = true;
-    video.playsInline = true;
-    video.onloadedmetadata = () => resolve();
-    video.onerror = () => resolve();
-    video.src = src;
-  });
-}
-
-function waitForWindowLoad() {
-  if (document.readyState === 'complete') {
-    return Promise.resolve();
-  }
-
-  return new Promise<void>((resolve) => {
-    window.addEventListener('load', () => resolve(), { once: true });
-  });
-}
-
 export default function LoadingOverlay() {
   const [isVisible, setIsVisible] = useState(true);
   const [isRevealing, setIsRevealing] = useState(false);
@@ -57,9 +34,10 @@ export default function LoadingOverlay() {
 
     Promise.all([
       wait(MIN_LOADER_MS),
-      waitForWindowLoad(),
-      preloadVideoMetadata('/snow.mp4'),
-      ...imageAssets.map(preloadImage),
+      Promise.race([
+        Promise.all(criticalImageAssets.map(preloadImage)),
+        wait(MAX_CRITICAL_ASSET_WAIT_MS),
+      ]),
     ]).then(() => {
       if (isMounted) {
         setIsRevealing(true);
