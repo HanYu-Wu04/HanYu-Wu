@@ -200,10 +200,10 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
         {/* Column 1 - Left Column (moves down when cursor moves up) */}
         <motion.div 
           style={{ y: leftColY }} 
-          className="flex flex-col gap-6 w-[200px] xl:w-[240px]"
+          className="flex flex-col gap-6 w-[250px] xl:w-[300px]"
         >
           {/* Image 1: top.png (HOME) */}
-          <motion.div {...revealItem(0.12)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.12)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/top.png" 
               alt="Home Preview" 
@@ -214,7 +214,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             />
           </motion.div>
           {/* Image 2: github.png (GITHUB) */}
-          <motion.div {...revealItem(0.24)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.24)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/github.png" 
               alt="GitHub Profile Preview" 
@@ -229,10 +229,10 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
         {/* Column 2 - Right Column (moves up when cursor moves up) */}
         <motion.div 
           style={{ y: rightColY }} 
-          className="flex flex-col gap-6 w-[200px] xl:w-[240px] pt-12"
+          className="flex flex-col gap-6 w-[250px] xl:w-[300px] pt-12"
         >
           {/* Image 3: linkedin.jpeg (LINKEDIN) */}
-          <motion.div {...revealItem(0.18)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.18)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/linkedin.jpeg" 
               alt="LinkedIn Profile Preview" 
@@ -243,7 +243,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
             />
           </motion.div>
           {/* Image 4: base.png (CONTACT) */}
-          <motion.div {...revealItem(0.30)} className="relative rounded-2xl overflow-hidden aspect-[3/4] shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...revealItem(0.30)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/base.png" 
               alt="Contact Preview" 

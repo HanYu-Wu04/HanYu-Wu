@@ -72,6 +72,10 @@ export const displayFragmentShader = `
   uniform vec2 uRevealSize;
   uniform vec2 uIceSize;
   uniform bool uIceManMode;
+  uniform float uPortraitZoom;
+  uniform float uPortraitCenterY;
+  uniform float uPortraitShiftY;
+  uniform bool uSubjectOnlyPortrait;
   
   varying vec2 vUv;
 
@@ -114,10 +118,9 @@ export const displayFragmentShader = `
   void main() {
     float mask = texture2D(uFluid, vUv).r;
     
-    // Zoom parameters (zoom = 1.35, centerY = 0.63 guarantees the entire head/hair is visible down to the chest/shoulders)
-    float zoom = 1.35;
-    float centerY = 0.63;
-    float shiftY = 0.0; // Restored to original position (no portrait shift)
+    float zoom = uPortraitZoom;
+    float centerY = uPortraitCenterY;
+    float shiftY = uPortraitShiftY;
 
     // Liquid refraction distortion based on derivatives
     vec2 px = 1.0 / uResolution;
@@ -130,8 +133,10 @@ export const displayFragmentShader = `
     // Sample portrait textures using undistorted vUv to prevent face from twisting
     vec4 base = sampleZoomedContain(uBaseTexture, vUv, uResolution, uBaseSize, zoom, centerY, shiftY);
     vec4 iceTex = sampleZoomedContain(uIceTexture, vUv, uResolution, uIceSize, zoom, centerY, shiftY);
+    vec4 revealBase = sampleZoomedContain(uRevealTexture, vUv, uResolution, uRevealSize, zoom, centerY, shiftY);
     
-    float subjectMask = containMask(vUv, uResolution, uBaseSize, shiftY);
+    float alphaMask = max(base.a, revealBase.a);
+    float subjectMask = containMask(vUv, uResolution, uBaseSize, shiftY) * smoothstep(0.02, 0.2, alphaMask);
 
     // Apply distortion to the fluid mask sampling for a liquid reveal boundary ripple
     float distortedMask = texture2D(uFluid, vUv + distortion * 0.4).r;
@@ -148,14 +153,14 @@ export const displayFragmentShader = `
       float shift = edge * 0.006 + length(distortion) * 0.03;
       
       float cr = sampleZoomedContain(uRevealTexture, vUv + vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY).r;
-      float cg = sampleZoomedContain(uRevealTexture, vUv, uResolution, uRevealSize, zoom, centerY, shiftY).g;
+      float cg = revealBase.g;
       float cb = sampleZoomedContain(uRevealTexture, vUv - vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY).b;
-      vec4 revealTex = vec4(cr, cg, cb, sampleZoomedContain(uRevealTexture, vUv, uResolution, uRevealSize, zoom, centerY, shiftY).a);
+      vec4 revealTex = vec4(cr, cg, cb, revealBase.a);
       
       finalColor = mix(base, revealTex, revealAmount);
     }
     
-    float outsideSubject = 1.0 - subjectMask;
+    float outsideSubject = uSubjectOnlyPortrait ? 0.0 : 1.0 - subjectMask;
     float softTrail = smoothstep(0.025, 0.55, mask);
     float denseTrail = smoothstep(0.28, 0.9, mask);
     float rim = smoothstep(0.04, 0.22, mask) * (1.0 - smoothstep(0.32, 0.72, mask));
@@ -170,6 +175,10 @@ export const displayFragmentShader = `
     float containerEdgeFade = smoothstep(0.0, 0.15, vUv.x) * smoothstep(1.0, 0.85, vUv.x);
     finalColor.a *= containerEdgeFade;
     finalColor.rgb *= containerEdgeFade;
+    if (uSubjectOnlyPortrait) {
+      finalColor.a *= subjectMask;
+      finalColor.rgb *= subjectMask;
+    }
 
     gl_FragColor = finalColor;
   }

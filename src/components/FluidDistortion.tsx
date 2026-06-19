@@ -10,12 +10,9 @@ import MenuOverlay from './MenuOverlay';
 const FINAL_SCROLL_PROGRESS = 1;
 const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
 const FINAL_SNOW_FRAME_TIME = 5.8;
-const GALLERY_SCROLL_HEIGHT = '1750vh';
-const MANIFESTO_EXIT_START = 0.72;
-const MANIFESTO_EXIT_END = 0.80;
-const GALLERY_REVEAL_START = 0.78;
-const GALLERY_REVEAL_END = 0.82;
 const GALLERY_FINAL_X = '-370vw';
+const MOBILE_GALLERY_FINAL_Y = '-590vh';
+const MOBILE_GALLERY_FOOTER_TOP = '590vh';
 
 const galleryItems = [
   {
@@ -30,6 +27,8 @@ const galleryItems = [
     maxWidth: '480px',
     aspectRatio: '670 / 432',
     muted: false,
+    type: 'photo' as const,
+    topMobile: '75vh'
   },
   {
     date: 'JUN 2023 - AUG 2023',
@@ -43,6 +42,8 @@ const galleryItems = [
     maxWidth: '520px',
     aspectRatio: '3320 / 1894',
     muted: false,
+    type: 'web' as const,
+    topMobile: '135vh'
   },
   {
     date: 'OCT 2023 - AUG 2025',
@@ -57,6 +58,8 @@ const galleryItems = [
     aspectRatio: '3010 / 1530',
     muted: false,
     url: 'https://github.com/hack4impact-calpoly/Creek-Lands-Conservation',
+    type: 'web' as const,
+    topMobile: '195vh'
   },
   {
     date: 'JUN 2024 - SEP 2025',
@@ -70,6 +73,8 @@ const galleryItems = [
     maxWidth: '500px',
     aspectRatio: '3072 / 2048',
     muted: false,
+    type: 'photo' as const,
+    topMobile: '255vh'
   },
   {
     date: 'JAN 2025 - AUG 2025',
@@ -84,6 +89,8 @@ const galleryItems = [
     aspectRatio: '3020 / 1532',
     muted: false,
     url: 'https://getlivin.org/',
+    type: 'web' as const,
+    topMobile: '315vh'
   },
   {
     date: 'SEP 2025 - DEC 2025',
@@ -97,6 +104,8 @@ const galleryItems = [
     maxWidth: '320px',
     aspectRatio: '1289 / 2269',
     muted: false,
+    type: 'photo' as const,
+    topMobile: '375vh'
   },
   {
     date: 'JAN 2026 - MAY 2026',
@@ -111,6 +120,8 @@ const galleryItems = [
     aspectRatio: '1290 / 2796',
     muted: false,
     url: 'https://campusirl.com',
+    type: 'mobile' as const,
+    topMobile: '445vh'
   },
   {
     date: 'JUN 2026',
@@ -124,6 +135,8 @@ const galleryItems = [
     maxWidth: '540px',
     aspectRatio: '2304 / 1536',
     muted: false,
+    type: 'photo' as const,
+    topMobile: '525vh'
   },
 ];
 
@@ -435,30 +448,58 @@ const GalleryCard: React.FC<{
   gallerySeen: boolean;
   galleryTextColor: any;
   gallerySubTextColor: any;
-}> = ({ item, index, gallerySeen, galleryTextColor, gallerySubTextColor }) => {
+  galleryDateColor: any;
+  cardBorderColor: any;
+  cardHeaderBg: any;
+  cardHeaderBorderColor: any;
+  cardHeaderTextColor: any;
+  cardHeaderMutedTextColor: any;
+  isMobileViewport: boolean;
+}> = ({
+  item,
+  index,
+  gallerySeen,
+  galleryTextColor,
+  gallerySubTextColor,
+  galleryDateColor,
+  cardBorderColor,
+  cardHeaderBg,
+  cardHeaderBorderColor,
+  cardHeaderTextColor,
+  cardHeaderMutedTextColor,
+  isMobileViewport
+}) => {
   const handleClick = () => {
     if (item.url) {
       window.open(item.url, '_blank', 'noopener,noreferrer');
     }
   };
 
+  const isWeb = item.type === 'web';
+  const isMobile = item.type === 'mobile';
+  const isPhoto = item.type === 'photo';
+
   return (
     <figure
       style={{
-        left: item.left,
-        top: item.top,
-        width: item.width,
-        minWidth: item.minWidth,
-        maxWidth: item.maxWidth,
+        left: isMobileViewport ? '50%' : item.left,
+        transform: isMobileViewport ? 'translateX(-50%)' : 'none',
+        top: isMobileViewport ? item.topMobile : item.top,
+        width: isMobileViewport ? '90vw' : item.width,
+        minWidth: isMobileViewport ? 'unset' : item.minWidth,
+        maxWidth: isMobileViewport ? (item.type === 'mobile' || item.aspectRatio.includes('1289') ? '280px' : '450px') : item.maxWidth,
       }}
       className="absolute select-none pointer-events-auto group cursor-pointer"
       onClick={handleClick}
     >
       <figcaption className="mb-3 max-w-full uppercase tracking-normal flex flex-col items-start gap-0.5">
         <RevealLine index={index * 2 + 1} isVisible={gallerySeen}>
-          <p className="font-press-start text-[8px] leading-[1.6] text-[#0ea5e9]">
+          <motion.p
+            style={{ color: galleryDateColor }}
+            className="font-press-start text-[8px] leading-[1.6]"
+          >
             {item.date}
-          </p>
+          </motion.p>
         </RevealLine>
         <RevealLine index={index * 2 + 2} isVisible={gallerySeen}>
           <motion.h4
@@ -478,24 +519,109 @@ const GalleryCard: React.FC<{
         </RevealLine>
       </figcaption>
       
-      <div className="relative overflow-hidden rounded-sm border border-[#20271d]/10 bg-black/5 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/40 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5">
-        <motion.img
-          src={item.src}
-          alt={item.title}
-          style={{ aspectRatio: item.aspectRatio }}
-          whileHover={{ scale: 1.04 }}
-          transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
-          className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
-        />
-
-        {item.url && (
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none select-none z-10">
-            <div className="bg-black/80 px-3 py-1.5 rounded text-[8px] font-press-start text-[#0ea5e9] tracking-wider uppercase">
-              Open Site ↗
-            </div>
-          </div>
+      <motion.div
+        style={{ borderColor: cardBorderColor }}
+        className="relative overflow-hidden rounded-sm border bg-[#0F172A]/40 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/50 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5"
+      >
+        {/* Browser Top Bar for Web Projects */}
+        {isWeb && (
+          <motion.div
+            style={{ backgroundColor: cardHeaderBg, borderBottomColor: cardHeaderBorderColor }}
+            className="h-6 md:h-7 border-b flex items-center px-3 gap-1.5 select-none rounded-t-sm"
+          >
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-400/80" />
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-400/80" />
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-400/80" />
+            <motion.div
+              style={{ color: cardHeaderTextColor, backgroundColor: cardHeaderBg }}
+              className="text-[6px] md:text-[8px] font-mono rounded-sm px-4 py-0.5 mx-auto max-w-[60%] overflow-hidden truncate"
+            >
+              {item.url ? item.url.replace('https://', '') : `${item.title.toLowerCase()}.com`}
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+
+        {/* Mobile Chassis Top Bar for Mobile projects */}
+        {isMobile && (
+          <motion.div
+            style={{ backgroundColor: cardHeaderBg, borderBottomColor: cardHeaderBorderColor }}
+            className="h-6 border-b flex items-center justify-between px-3 select-none rounded-t-sm"
+          >
+            <motion.div
+              style={{ color: cardHeaderTextColor }}
+              className="text-[7px] font-press-start"
+            >
+              09:41
+            </motion.div>
+            <div className="w-10 h-3 bg-slate-900/20 rounded-full flex items-center justify-center border border-slate-900/10">
+              <motion.div
+                style={{ backgroundColor: cardHeaderMutedTextColor }}
+                className="w-1.5 h-1.5 rounded-full"
+              />
+            </div>
+            <div className="flex gap-0.5 items-center">
+              <motion.div
+                style={{ backgroundColor: cardHeaderMutedTextColor }}
+                className="w-1.5 h-1.5 rounded-full"
+              />
+              <motion.div
+                style={{ backgroundColor: cardHeaderMutedTextColor }}
+                className="w-2.5 h-1.5 rounded-sm"
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {/* Terminal Header for Photos/General */}
+        {isPhoto && (
+          <motion.div
+            style={{ backgroundColor: cardHeaderBg, borderBottomColor: cardHeaderBorderColor }}
+            className="h-6 md:h-7 border-b flex items-center justify-between px-3 select-none rounded-t-sm"
+          >
+            <motion.div
+              style={{ color: cardHeaderTextColor }}
+              className="text-[6px] md:text-[7px] font-press-start tracking-wider"
+            >
+              {`[SYS_IMG_0${index + 1}]`}
+            </motion.div>
+            <motion.div
+              style={{ color: cardHeaderMutedTextColor }}
+              className="text-[6px] md:text-[7px] font-mono"
+            >
+              {item.aspectRatio.replace(' ', '')}.RAW
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Image Display Area */}
+        <div className="relative w-full overflow-hidden">
+          <motion.img
+            src={item.src}
+            alt={item.title}
+            style={{ aspectRatio: item.aspectRatio }}
+            whileHover={{ scale: 1.03 }}
+            transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
+            className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
+          />
+
+          {/* Grid overlay for brutalist/thematic border aesthetic */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(14,165,233,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(14,165,233,0.02)_1px,transparent_1px)] bg-[size:10px_10px] pointer-events-none z-10 transition-opacity duration-300 group-hover:opacity-50" />
+
+          {/* Subtle corner crosshairs inside the image area */}
+          <motion.div style={{ color: cardHeaderMutedTextColor }} className="absolute top-1 left-1 font-mono text-[7px] select-none pointer-events-none z-10">+</motion.div>
+          <motion.div style={{ color: cardHeaderMutedTextColor }} className="absolute top-1 right-1 font-mono text-[7px] select-none pointer-events-none z-10">+</motion.div>
+          <motion.div style={{ color: cardHeaderMutedTextColor }} className="absolute bottom-1 left-1 font-mono text-[7px] select-none pointer-events-none z-10">+</motion.div>
+          <motion.div style={{ color: cardHeaderMutedTextColor }} className="absolute bottom-1 right-1 font-mono text-[7px] select-none pointer-events-none z-10">+</motion.div>
+
+          {item.url && (
+            <div className="absolute inset-0 bg-[#0F172A]/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none select-none z-20">
+              <div className="bg-[#0ea5e9] text-black px-3 py-1.5 rounded-sm text-[8px] font-press-start tracking-wider uppercase border border-[#0ea5e9] shadow-[0_4px_12px_rgba(14,165,233,0.3)]">
+                Launch Project ↗
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
     </figure>
   );
 };
@@ -505,12 +631,29 @@ const FluidDistortion: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [isMobileViewport, setIsMobileViewport] = useState(window.innerWidth < 1024);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const GALLERY_REVEAL_START = isMobileViewport ? 0.465 : 0.715;
+  const GALLERY_REVEAL_END = isMobileViewport ? 0.48 : 0.73;
+  const MANIFESTO_EXIT_END = isMobileViewport ? 0.455 : 0.705;
+ 
+  const sceneExitStart = isMobileViewport ? 0.2725 : 0.45;
+  const sceneExitEnd = isMobileViewport ? 0.2875 : 0.525;
+  const scrollHeight = isMobileViewport ? '1320vh' : '1750vh';
+ 
   // Scroll Progress logic
   const { scrollYProgress } = useScroll();
   
   // Transform values for the shrinking box
-  const boxWidth = useTransform(scrollYProgress, [0.08, 0.38], ['100vw', '32vw']);
-  const boxHeight = useTransform(scrollYProgress, [0.08, 0.38], ['100vh', '45vh']);
+  const boxWidth = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vw', isMobileViewport ? '44vw' : '32vw']);
+  const boxHeight = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vh', isMobileViewport ? '36vh' : '45vh']);
   const boxY = useTransform(scrollYProgress, [0.35, 0.55], ['0%', '-20%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.25], [0, 0]);
   const videoOpacity = useTransform(scrollYProgress, [0, 1], [1, 1]);
@@ -519,26 +662,40 @@ const FluidDistortion: React.FC = () => {
   const section1Opacity = useTransform(scrollYProgress, [0, 1.0], [1, 1]);
   const marqueeOpacity = useTransform(scrollYProgress, [0.04, 0.1], [0, 1]);
   const signatureOpacity = useTransform(scrollYProgress, [0.15, 0.18, 1.0], [0, 1, 1]);
-  const signatureScale = useTransform(scrollYProgress, [0.15, 0.38], [0.92, 1]);
-  const signaturePathLength = useTransform(scrollYProgress, [0.15, 0.38], [0, 1]);
+  const signatureScale = useTransform(scrollYProgress, [0.15, isMobileViewport ? 0.32 : 0.38], [0.92, 1]);
+  const signaturePathLength = useTransform(scrollYProgress, [0.15, isMobileViewport ? 0.32 : 0.38], [0, 1]);
   
   // Scene coordination: After shrinking, the whole "Landing" scene moves up
-  const sceneY = useTransform(scrollYProgress, [0.45, 0.64], ['0%', '-100%']);
+  const sceneY = useTransform(scrollYProgress, [sceneExitStart, sceneExitEnd], ['0%', '-100%']);
   
-  const manifestoOpacity = useTransform(scrollYProgress, [0.50, 0.58, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
-  const manifestoY = useTransform(scrollYProgress, [0.50, 0.68, MANIFESTO_EXIT_START, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS], ['60%', '0%', '0%', '-125%', '-125%']);
+  const manifestoPaperY = useTransform(
+    scrollYProgress,
+    [sceneExitStart, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS],
+    ['0%', '-225%', '-225%']
+  );
   const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
   const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
-  const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#182015', '#aeb4a8', '#f4f3ed']);
-  const galleryLineOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], [0.08, 0.12, 0.18]);
-  const galleryTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#eef1e7', '#3a4235', '#20271d']);
-  const gallerySubTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, 0.955, FINAL_SCROLL_PROGRESS], ['#aeb4a8', '#5a6255', '#3a4235']);
+  const galleryY = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['100vh', isMobileViewport ? MOBILE_GALLERY_FINAL_Y : '-860vh']);
+  const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#0A0F1A', '#0A0F1A', '#cbd5e1', '#f4f3ed']);
+  const galleryLineOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], [0.08, 0.08, 0.12, 0.18]);
+  const galleryTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#ffffff', '#ffffff', '#1e293b', '#0f172a']);
+  const gallerySubTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#94a3b8', '#94a3b8', '#475569', '#334155']);
+  const galleryDateColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#99f6ff', '#99f6ff', '#1e293b', '#0f618a']);
+  const galleryIntroTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#d7d9cf', '#d7d9cf', '#475569', '#334155']);
+  const galleryCardBorderColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.15)', 'rgba(255, 255, 255, 0.15)', 'rgba(32, 39, 29, 0.20)', 'rgba(32, 39, 29, 0.20)']);
+  const galleryCardHeaderBg = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.07)', 'rgba(32, 39, 29, 0.09)', 'rgba(32, 39, 29, 0.09)']);
+  const galleryCardHeaderBorderColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.12)', 'rgba(32, 39, 29, 0.15)', 'rgba(32, 39, 29, 0.15)']);
+  const galleryCardHeaderTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.60)', 'rgba(255, 255, 255, 0.60)', 'rgba(32, 39, 29, 0.60)', 'rgba(32, 39, 29, 0.60)']);
+  const galleryCardHeaderMutedTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.40)', 'rgba(255, 255, 255, 0.40)', 'rgba(32, 39, 29, 0.45)', 'rgba(32, 39, 29, 0.45)']);
 
   // Background Darkening & Effects - Clean dark transition at the end
   const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [0.95, 0.80, 0.88]);
-  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, 0.82, 0.90, FINAL_SCROLL_PROGRESS], [0, 0.78, 0.22, 0]);
+  const videoBlur = useTransform(scrollYProgress, [0.3, 0.6, 0.75, 0.82], ['0px', '4px', '8px', '12px']);
+  const contrastMaskOpacity = useTransform(scrollYProgress, [0.0, 0.15, 0.45, 0.6], [0.2, 0.55, 0.55, 0.0]);
+  const endOverlayOpacity = useTransform(scrollYProgress, [0.52, isMobileViewport ? 0.75 : 0.82, 0.90, FINAL_SCROLL_PROGRESS], [0, 0.78, 0.22, 0]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
-  const nameColor = useTransform(scrollYProgress, [0.08, 0.38, 0.82, FINAL_SCROLL_PROGRESS], ['#000000', '#ffffff', '#20271d', '#20271d']);
+  const nameColor = useTransform(scrollYProgress, [0.08, 0.38, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#000000', '#ffffff', '#ffffff', '#20271d', '#20271d']);
+  const navIconColor = useTransform(scrollYProgress, [0.08, 0.38, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#000000', '#D3ECEA', '#D3ECEA', '#20271d', '#20271d']);
   const topUIScale = useTransform(scrollYProgress, [0.08, 0.38], [1, 0.9]);
   const topUIOpacity = 1;
 
@@ -571,8 +728,6 @@ const FluidDistortion: React.FC = () => {
   
   const headerLetters = "WHO AM I".split("");
 
-  // Manifesto section developer emblem transforms
-  const devEmblemPathLength = useTransform(scrollYProgress, [0.52, 0.65], [0, 1]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const homeVideoRef = useRef<HTMLVideoElement>(null);
   const finalFrameLockedRef = useRef(false);
@@ -586,17 +741,15 @@ const FluidDistortion: React.FC = () => {
     }
   }, []);
 
+
+
   const [isIceManMode, setIsIceManMode] = useState(false);
   const iceManRef = useRef(false);
   const typedKeys = useRef('');
 
-  const [manifestoSeen, setManifestoSeen] = useState(false);
   const [gallerySeen, setGallerySeen] = useState(false);
   const [footerSeen, setFooterSeen] = useState(false);
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (latest >= 0.52 && !manifestoSeen) {
-      setManifestoSeen(true);
-    }
     if (latest >= GALLERY_REVEAL_START && !gallerySeen) {
       setGallerySeen(true);
     }
@@ -719,6 +872,10 @@ const FluidDistortion: React.FC = () => {
         uRevealSize: { value: revealSize },
         uIceSize: { value: iceSize },
         uIceManMode: { value: false },
+        uPortraitZoom: { value: isMobileViewport ? 1.32 : 1.35 },
+        uPortraitCenterY: { value: 0.63 },
+        uPortraitShiftY: { value: isMobileViewport ? 0.055 : 0.0 },
+        uSubjectOnlyPortrait: { value: isMobileViewport },
       },
       vertexShader,
       fragmentShader: displayFragmentShader,
@@ -945,7 +1102,7 @@ const FluidDistortion: React.FC = () => {
       const textureAspect = baseSize.y > 0 ? baseSize.x / baseSize.y : 1.0;
       
       const frameScale = 1.06;
-      const baseY = 0.00;
+      const baseY = isMobileViewport ? -0.08 : 0.00;
 
       if (aspect > textureAspect) {
         // Viewport is wider than portrait (contain height-limited)
@@ -988,8 +1145,8 @@ const FluidDistortion: React.FC = () => {
         style={{ 
           opacity: videoOpacity,
           filter: useTransform(
-            bgBrightness,
-            (brightness) => `brightness(${brightness})`
+            [bgBrightness, videoBlur],
+            ([brightness, blur]) => `brightness(${brightness}) blur(${blur})`
           )
         }}
         className="fixed inset-0 z-[1] pointer-events-none"
@@ -999,12 +1156,20 @@ const FluidDistortion: React.FC = () => {
           autoPlay 
           muted 
           loop 
-          playsInline 
+          playsInline
+          webkit-playsinline="true"
+          preload="auto"
           className="w-full h-full object-cover"
         >
           <source src={ASSETS.bgVideo} type="video/mp4" />
         </video>
       </motion.div>
+
+      {/* Contrast Mask Overlay */}
+      <motion.div
+        className="fixed inset-0 z-[2] pointer-events-none bg-[#090D16]/55 backdrop-blur-[1px]"
+        style={{ opacity: contrastMaskOpacity }}
+      />
 
       {/* End State Overlay */}
       <motion.div
@@ -1029,50 +1194,80 @@ const FluidDistortion: React.FC = () => {
             opacity: topUIOpacity
           }}
         >
-          <motion.div
-            className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
-            style={{
-              color: nameColor,
-              scale: topUIScale
-            }}
-          >
-            <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
-              <LandoText text="HanYu" className="lando-link-black" />
-            </span>
-            <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
-              <LandoText text="Wu" className="lando-link-black" />
-            </span>
-          </motion.div>
+          {isMobileViewport ? (
+            /* Mobile Viewport: Resume button on top-left replacing the name */
+            <motion.div
+              className="pointer-events-auto pt-1 origin-top-left"
+              style={{ scale: topUIScale }}
+            >
+              <motion.a
+                href="/HanYu_Wu_Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileTap={{ scale: 0.98 }}
+                className="h-10 px-4 bg-[#0ea5e9] rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
+              >
+                <Download className="w-4 h-4 text-black" />
+                <span className="text-[9px] font-normal uppercase tracking-normal text-black font-press-start">
+                  <LandoText text="RESUME" className="lando-link-mono" />
+                </span>
+              </motion.a>
+            </motion.div>
+          ) : (
+            /* Desktop Viewport: Name on top-left */
+            <motion.div
+              className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
+              style={{
+                color: nameColor,
+                scale: topUIScale
+              }}
+            >
+              <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
+                <LandoText text="HanYu" className="lando-link-black" />
+              </span>
+              <span className="text-3xl md:text-5xl font-normal uppercase lando-link-compact font-press-start">
+                <LandoText text="Wu" className="lando-link-black" />
+              </span>
+            </motion.div>
+          )}
 
           {/* Top Right: Resume Button & Menu */}
           <motion.div
             className="pointer-events-auto pt-1 flex items-center gap-2 md:gap-3 origin-top-right"
             style={{ scale: topUIScale }}
           >
-              {/* Resume Button */}
-              <motion.a
-                href="/HanYu_Wu_Resume.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                whileTap={{ scale: 0.98 }}
-                className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
-              >
-                <Download className="w-5 h-5 md:w-6 md:h-6 text-black" />
-                <span className="text-xs md:text-sm font-normal uppercase tracking-normal text-black font-press-start">
-                  <LandoText text="RESUME" className="lando-link-mono" />
-                </span>
-              </motion.a>
+              {/* Resume Button (Desktop only) */}
+              {!isMobileViewport && (
+                <motion.a
+                  href="/HanYu_Wu_Resume.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileTap={{ scale: 0.98 }}
+                  className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
+                >
+                  <Download className="w-5 h-5 md:w-6 md:h-6 text-black" />
+                  <span className="text-xs md:text-sm font-normal uppercase tracking-normal text-black font-press-start">
+                    <LandoText text="RESUME" className="lando-link-mono" />
+                  </span>
+                </motion.a>
+              )}
 
               {/* Menu Button - Lando Norris Style (Thicker Border & Lines) */}
               <motion.button
                 onClick={() => setIsMenuOpen(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-12 h-12 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-slate-950/40 hover:bg-slate-950/60 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/menu"
+                className="w-10 h-10 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-transparent hover:bg-transparent rounded-lg md:rounded-xl flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/menu"
                 aria-label="Menu"
               >
-                <div className="w-5 md:w-6 h-[3px] bg-[#D3ECEA] group-hover/menu:bg-[#0ea5e9] transition-colors rounded-full" />
-                <div className="w-5 md:w-6 h-[3px] bg-[#D3ECEA] group-hover/menu:bg-[#0ea5e9] transition-colors rounded-full" />
+                <motion.div 
+                  style={{ backgroundColor: navIconColor }}
+                  className="w-4 md:w-6 h-0.5 md:h-[3px] group-hover/menu:bg-[#0ea5e9]! transition-colors rounded-full" 
+                />
+                <motion.div 
+                  style={{ backgroundColor: navIconColor }}
+                  className="w-4 md:w-6 h-0.5 md:h-[3px] group-hover/menu:bg-[#0ea5e9]! transition-colors rounded-full" 
+                />
               </motion.button>
           </motion.div>
 
@@ -1084,7 +1279,7 @@ const FluidDistortion: React.FC = () => {
       </div>
 
       {/* Main Experience Section */}
-      <div className="relative w-full z-20" style={{ height: GALLERY_SCROLL_HEIGHT }}>
+      <div className="relative w-full z-20" style={{ height: scrollHeight }}>
         <motion.div 
           style={{ opacity: section1Opacity }}
           className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden"
@@ -1096,7 +1291,7 @@ const FluidDistortion: React.FC = () => {
           >
             {/* Top Center: Iconic Mark */}
             <motion.div
-              className="absolute left-1/2 -translate-x-1/2 top-4 flex flex-col items-center justify-center gap-2 cursor-pointer pointer-events-auto transition-colors duration-300 select-none z-40"
+              className="absolute left-1/2 -translate-x-1/2 top-7 md:top-4 flex flex-col items-center justify-center gap-3 md:gap-2 cursor-pointer pointer-events-auto transition-colors duration-300 select-none z-40"
               onMouseEnter={() => setIsHeaderLogoHovered(true)}
               onMouseLeave={() => setIsHeaderLogoHovered(false)}
               style={{
@@ -1137,22 +1332,31 @@ const FluidDistortion: React.FC = () => {
                   }}
                 />
               </svg>
-              <div className="text-[8px] font-black uppercase flex whitespace-nowrap">
-                {headerLetters.map((char, index) => {
-                  const startScroll = 0.15 + (index * 0.18) / headerLetters.length;
-                  const endScroll = startScroll + 0.04;
-                  return (
-                    <RevealLetter
-                      key={index}
-                      scrollYProgress={scrollYProgress}
-                      start={startScroll}
-                      end={endScroll}
-                      char={char}
-                      isLast={index === headerLetters.length - 1}
-                    />
-                  );
-                })}
-              </div>
+              {isMobileViewport ? (
+                <div 
+                  className="text-[12px] font-black uppercase tracking-widest mt-1 text-[#ffffff]"
+                  style={{ fontFamily: "'Press Start 2P', monospace, sans-serif" }}
+                >
+                  <LandoText text="HanYu Wu" className="lando-link-black" />
+                </div>
+              ) : (
+                <div className="text-[8px] font-black uppercase flex whitespace-nowrap">
+                  {headerLetters.map((char, index) => {
+                    const startScroll = 0.15 + (index * 0.18) / headerLetters.length;
+                    const endScroll = startScroll + 0.04;
+                    return (
+                      <RevealLetter
+                        key={index}
+                        scrollYProgress={scrollYProgress}
+                        start={startScroll}
+                        end={endScroll}
+                        char={char}
+                        isLast={index === headerLetters.length - 1}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </motion.div>
             {/* Dynamic Background Marquee - Now moves with the scene */}
             <motion.div 
@@ -1162,14 +1366,14 @@ const FluidDistortion: React.FC = () => {
                 <motion.div 
                   animate={{ x: [0, -2000] }}
                   transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950/60 leading-[1.35] mb-1 [word-spacing:1vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950/60 leading-[1.35] mb-1 [word-spacing:-2.5vw]"
                 >
                   FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
                 </motion.div>
                 <motion.div 
                   animate={{ x: [-2000, 0] }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/40 leading-[1.35] [word-spacing:1vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/40 leading-[1.35] [word-spacing:-2.5vw]"
                 >
                   FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
                 </motion.div>
@@ -1181,7 +1385,7 @@ const FluidDistortion: React.FC = () => {
                 width: boxWidth,
                 height: boxHeight,
               }}
-              className="relative flex items-center justify-center overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)] z-20"
+              className={`relative flex items-center justify-center z-20 ${isMobileViewport ? 'overflow-visible shadow-none' : 'overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]'}`}
             >
               <motion.div 
                 ref={containerRef} 
@@ -1203,7 +1407,7 @@ const FluidDistortion: React.FC = () => {
               }}
               className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center px-6"
             >
-              <div className="h-[140vh] w-[min(192vw,224vh)]">
+              <div className={isMobileViewport ? "h-[58vh] w-[96vw]" : "h-[140vh] w-[min(192vw,224vh)]"}>
                 <Stroke
                   className="w-full h-full drop-shadow-[0_0_44px_rgba(14,165,233,0.65)] overflow-visible"
                   color="#0ea5e9"
@@ -1214,13 +1418,12 @@ const FluidDistortion: React.FC = () => {
             </motion.div>
           </motion.div>
 
-          {/* Manifesto Text - Moves up into the "new space" from below */}
+          {/* Manifesto Text - Placed below the signature on the same scroll plane */}
           <motion.div
             style={{ 
-              opacity: manifestoOpacity,
-              y: manifestoY
+              y: manifestoPaperY
             }}
-            className="absolute inset-0 z-[60] flex items-start justify-center pt-[10vh] md:pt-[12vh] pointer-events-none p-6 md:p-10 origin-top"
+            className="absolute top-full left-0 right-0 h-screen z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
             <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
               {/* Programmer Laurel Emblem & Text above the quote */}
@@ -1236,35 +1439,33 @@ const FluidDistortion: React.FC = () => {
                     stroke="currentColor"
                     strokeWidth={1.5}
                     fill="none"
-                    style={{
-                      pathLength: devEmblemPathLength
-                    }}
+                    style={{ pathLength: 1 }}
                   />
                 </motion.svg>
                 <div className="text-[9px] font-press-start md:text-[10px] font-black uppercase whitespace-nowrap text-[#0ea5e9] tracking-[0.45em] pl-[0.45em]">
                   BUILDING SINCE 2021
                 </div>
               </div>
-              <h2 className="font-press-start text-[clamp(0.8rem,3.05vw,3.75rem)] font-normal leading-[1.38] tracking-normal uppercase select-none px-4 flex flex-col items-center gap-2 md:gap-3">
-                <RevealLine index={0} isVisible={manifestoSeen}>
-                  <span className="text-[#0ea5e9]">Challenging</span> <span className="text-[#ffffff]">the market,</span>
+              <h2 className="font-press-start text-[clamp(1rem,4.1vw,3.75rem)] md:text-[clamp(0.8rem,3.05vw,3.75rem)] font-normal leading-[1.55] md:leading-[1.65] tracking-normal uppercase select-none px-2 md:px-4 flex flex-col items-center gap-2 md:gap-3">
+                <RevealLine index={0} isVisible={true}>
+                  <span className="text-[#ffffff]">Challenging the market,</span>
                 </RevealLine>
-                <RevealLine index={1} isVisible={manifestoSeen}>
-                  <span className="text-[#ffffff]">building to</span> <span className="text-[#0ea5e9]">scale,</span>
+                <RevealLine index={1} isVisible={true}>
+                  <span className="text-[#ffffff]">building to scale,</span>
                 </RevealLine>
-                <RevealLine index={2} isVisible={manifestoSeen}>
-                  <span className="text-[#0ea5e9]">driving results</span>
+                <RevealLine index={2} isVisible={true}>
+                  <span className="text-[#ffffff]">driving results</span>
                 </RevealLine>
-                <RevealLine index={3} isVisible={manifestoSeen}>
+                <RevealLine index={3} isVisible={true}>
                   <span className="text-[#ffffff]">across every vertical.</span>
                 </RevealLine>
-                <RevealLine index={4} isVisible={manifestoSeen}>
-                  <span className="text-[#ffffff]">Shaping an industry</span> <span className="text-[#0ea5e9]">legacy</span>
+                <RevealLine index={4} isVisible={true}>
+                  <span className="text-[#ffffff]">Shaping an industry legacy</span>
                 </RevealLine>
-                <RevealLine index={5} isVisible={manifestoSeen}>
+                <RevealLine index={5} isVisible={true}>
                   <span className="text-[#ffffff]">through</span> <span className="text-[#0ea5e9]">vision, execution,</span>
                 </RevealLine>
-                <RevealLine index={6} isVisible={manifestoSeen}>
+                <RevealLine index={6} isVisible={true}>
                   <span className="text-[#ffffff]">and</span> <span className="text-[#0ea5e9]">leadership.</span>
                 </RevealLine>
               </h2>
@@ -1280,7 +1481,7 @@ const FluidDistortion: React.FC = () => {
               style={{ opacity: galleryLineOpacity }}
               className="absolute inset-0 pointer-events-none"
             >
-              <svg viewBox="0 0 1400 900" className="h-full w-full text-[#27311f]">
+              <svg viewBox="0 0 1400 900" className="h-full w-full text-slate-500">
                 {[...Array(10)].map((_, i) => (
                   <path
                     key={i}
@@ -1294,33 +1495,39 @@ const FluidDistortion: React.FC = () => {
             </motion.div>
 
             <motion.div
-              style={{ x: galleryX }}
-              className="absolute left-0 top-0 h-[150vh] w-[470vw]"
+              style={isMobileViewport ? { y: galleryY } : { x: galleryX }}
+              className={isMobileViewport ? "absolute left-0 top-0 w-full h-[950vh]" : "absolute left-0 top-0 h-[150vh] w-[470vw]"}
             >
-              <div className="absolute left-[4vw] top-[14vh] max-w-[55vw] select-none flex flex-col items-start gap-1">
+              <div
+                style={isMobileViewport ? { left: '5vw', top: '10vh', maxWidth: '90vw' } : {}}
+                className="absolute left-[4vw] top-[14vh] max-w-[90vw] md:max-w-[55vw] select-none flex flex-col items-start gap-1"
+              >
                 <RevealLine index={0} isVisible={gallerySeen}>
                   <p className="font-press-start text-[9px] uppercase tracking-normal text-[#0ea5e9] mb-5">
-                    AFTER BUILDING TO SCALE
+                    02 / WORK INDEX
                   </p>
                 </RevealLine>
-                <h3 className="text-[12vw] leading-[0.82] font-black uppercase tracking-normal text-[#eef1e7] mix-blend-difference flex flex-col items-start">
+                <h3 className="text-[clamp(2.5rem,12vw,9rem)] leading-[0.82] font-black uppercase tracking-normal text-[#eef1e7] mix-blend-difference flex flex-col items-start">
                   <RevealLine index={1} isVisible={gallerySeen}>
-                    <span>Across</span>
+                    <span>Systems</span>
                   </RevealLine>
                   <RevealLine index={2} isVisible={gallerySeen}>
-                    <span>every</span>
-                  </RevealLine>
-                  <RevealLine index={3} isVisible={gallerySeen}>
-                    <span>vertical.</span>
+                    <span>archive.</span>
                   </RevealLine>
                 </h3>
               </div>
 
-              <div className="absolute left-[92vw] top-[30vh] w-[26vw] min-w-[320px] max-w-[440px] select-none flex flex-col items-start">
+              <div
+                style={isMobileViewport ? { left: '5vw', top: '42vh', width: '90vw', maxWidth: '90vw', minWidth: 'unset' } : {}}
+                className="absolute left-[92vw] top-[30vh] w-[26vw] min-w-[320px] max-w-[440px] select-none flex flex-col items-start"
+              >
                 <RevealLine index={4} isVisible={gallerySeen}>
-                  <p className="text-[clamp(1.5rem,2.3vw,3rem)] font-black leading-[0.92] tracking-normal text-[#d7d9cf]">
-                    The work keeps moving: launched, shipped, refined, and scaled through each scroll.
-                  </p>
+                  <motion.p
+                    style={{ color: galleryIntroTextColor }}
+                    className="text-[clamp(1.5rem,2.3vw,3rem)] font-black leading-[0.92] tracking-normal"
+                  >
+                    A retrospective of selected engineering projects launched, scaled, and deployed from inception to graduation.
+                  </motion.p>
                 </RevealLine>
                 <div className="mt-8 h-12 w-36 text-[#0ea5e9]">
                   <Stroke className="h-full w-full" color="#0ea5e9" pathLength={1} strokeWidth={3} />
@@ -1335,12 +1542,19 @@ const FluidDistortion: React.FC = () => {
                   gallerySeen={gallerySeen}
                   galleryTextColor={galleryTextColor}
                   gallerySubTextColor={gallerySubTextColor}
+                  galleryDateColor={galleryDateColor}
+                  cardBorderColor={galleryCardBorderColor}
+                  cardHeaderBg={galleryCardHeaderBg}
+                  cardHeaderBorderColor={galleryCardHeaderBorderColor}
+                  cardHeaderTextColor={galleryCardHeaderTextColor}
+                  cardHeaderMutedTextColor={galleryCardHeaderMutedTextColor}
+                  isMobileViewport={isMobileViewport}
                 />
               ))}
 
               {/* Lando Norris Style Split Section - Nested as the final slide */}
               <div 
-                style={{ left: '370vw' }}
+                style={isMobileViewport ? { left: '0vw', top: MOBILE_GALLERY_FOOTER_TOP } : { left: '370vw' }}
                 className="absolute top-0 h-screen w-[100vw] flex flex-col justify-center items-center overflow-hidden py-16 px-6 md:px-16 pointer-events-auto"
               >
                 {/* Left Side: Helmet Image */}
@@ -1349,9 +1563,13 @@ const FluidDistortion: React.FC = () => {
                   alt="Helmet Artwork" 
                   style={{
                     maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
-                    WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)'
+                    WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
+                    clipPath: isMobileViewport ? 'inset(0 0 0 50%)' : 'none',
+                    WebkitClipPath: isMobileViewport ? 'inset(0 0 0 50%)' : 'none',
+                    left: '0px',
+                    transform: isMobileViewport ? 'translateX(-50%)' : 'none'
                   }}
-                  className="absolute left-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-left pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
+                  className="absolute bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-left pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
                 />
 
                 {/* Right Side: Face Image */}
@@ -1360,107 +1578,117 @@ const FluidDistortion: React.FC = () => {
                   alt="Face Profile" 
                   style={{
                     maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
-                    WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)'
+                    WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
+                    clipPath: isMobileViewport ? 'inset(0 50% 0 0)' : 'none',
+                    WebkitClipPath: isMobileViewport ? 'inset(0 50% 0 0)' : 'none',
+                    right: '0px',
+                    transform: isMobileViewport ? 'translateX(50%)' : 'none'
                   }}
-                  className="absolute right-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-right pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
+                  className="absolute bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-right pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
                 />
 
                 {/* Center Content */}
-                <div className="w-full max-w-6xl mx-auto z-20 flex flex-col items-center justify-center flex-grow py-12">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 w-full px-4">
+                <div className="w-full max-w-6xl mx-auto z-20 flex flex-col items-center justify-center flex-grow py-4 md:py-12">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-14 md:gap-8 w-full px-4">
                     {/* GITHUB Column */}
-                    <div className="flex flex-col items-center text-center group">
-                      <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
+                    <a 
+                      href="https://github.com/HanYu-Wu04" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center text-center group cursor-pointer pointer-events-auto block"
+                    >
+                      <div className="relative mb-4 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex flex-col justify-end items-center">
+                        <motion.span 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                          transition={{ delay: 0 * 0.15 + 0.20, duration: 0.4 }}
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
+                        >
+                          Hub
+                        </motion.span>
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
                           <RevealLine index={0} isVisible={footerSeen}>
                             GITHUB
                           </RevealLine>
                         </span>
-                        <motion.span 
-                          initial={{ opacity: 0 }}
-                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
-                          transition={{ delay: 0 * 0.22 + 0.30, duration: 0.3 }}
-                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
-                        >
-                          Hub
-                        </motion.span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
                         Explore source code, personal projects, repositories, and developer contributions.
                       </p>
-                      <a 
-                        href="https://github.com/HanYu-Wu04" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                      <div 
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
-                      </a>
-                    </div>
+                      </div>
+                    </a>
 
                     {/* LINKEDIN Column */}
-                    <div className="flex flex-col items-center text-center group">
-                      <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
+                    <a 
+                      href="https://www.linkedin.com/in/hanyu-wu04/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center text-center group cursor-pointer pointer-events-auto block"
+                    >
+                      <div className="relative mb-4 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex flex-col justify-end items-center">
+                        <motion.span 
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                          transition={{ delay: 1 * 0.15 + 0.20, duration: 0.4 }}
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
+                        >
+                          In
+                        </motion.span>
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
                           <RevealLine index={1} isVisible={footerSeen}>
                             LINKEDIN
                           </RevealLine>
                         </span>
-                        <motion.span 
-                          initial={{ opacity: 0 }}
-                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
-                          transition={{ delay: 1 * 0.22 + 0.30, duration: 0.3 }}
-                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
-                        >
-                          In
-                        </motion.span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
                         Connect for professional networking, career updates, and industry experience.
                       </p>
-                      <a 
-                        href="https://www.linkedin.com/in/hanyu-wu04/" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                      <div 
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
-                      </a>
-                    </div>
+                      </div>
+                    </a>
 
-                    {/* CONTACT Column */}
-                    <div className="flex flex-col items-center text-center group">
-                      <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
-                          <RevealLine index={2} isVisible={footerSeen}>
-                            CONTACT
-                          </RevealLine>
-                        </span>
+                    {/* EMAIL Column */}
+                    <a 
+                      href="mailto:hanyuwu04@gmail.com" 
+                      className="flex flex-col items-center text-center group cursor-pointer pointer-events-auto block"
+                    >
+                      <div className="relative mb-4 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex flex-col justify-end items-center">
                         <motion.span 
-                          initial={{ opacity: 0 }}
-                          animate={footerSeen ? { opacity: 1 } : { opacity: 0 }}
-                          transition={{ delay: 2 * 0.22 + 0.30, duration: 0.3 }}
-                          className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105 pointer-events-none"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                          transition={{ delay: 2 * 0.15 + 0.20, duration: 0.4 }}
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
                         >
                           Mail
                         </motion.span>
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
+                          <RevealLine index={2} isVisible={footerSeen}>
+                            EMAIL
+                          </RevealLine>
+                        </span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
                         Reach out directly for freelance inquiries, collaborations, or general questions.
                       </p>
-                      <a 
-                        href="mailto:hanyuwu04@gmail.com" 
-                        className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                      <div 
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
-                      </a>
-                    </div>
+                      </div>
+                    </a>
                   </div>
                 </div>
               </div>
