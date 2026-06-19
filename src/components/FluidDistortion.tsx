@@ -1298,6 +1298,116 @@ const FluidDistortion: React.FC = () => {
         </motion.div>
       </div>
 
+      {/* Lando Norris Style Split Section */}
+      <section className="relative w-full min-h-screen bg-[#f4f3ed] text-[#20271d] z-20 flex flex-col justify-center items-center overflow-hidden py-24 px-6 md:px-16">
+        {/* Background topographic lines SVG (same as overlay) */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-[0.03]">
+          <svg viewBox="0 0 1000 1000" className="w-full h-full scale-125 text-[#20271d]">
+            {[...Array(8)].map((_, i) => (
+              <path 
+                key={i}
+                d={`M-100,${150 * i} Q250,${100 * i} 500,${150 * i} T1100,${150 * i}`} 
+                stroke="currentColor" 
+                fill="none" 
+                strokeWidth="0.5" 
+              />
+            ))}
+          </svg>
+        </div>
+
+        {/* Left Side: Helmet Image */}
+        <img 
+          src="/left.png" 
+          alt="Helmet Artwork" 
+          className="absolute left-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-left pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
+        />
+
+        {/* Right Side: Face Image */}
+        <img 
+          src="/right.png" 
+          alt="Face Profile" 
+          className="absolute right-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-right pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
+        />
+
+        {/* Center Content */}
+        <div className="w-full max-w-6xl mx-auto z-20 flex flex-col items-center justify-center flex-grow py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 w-full px-4">
+            {/* GITHUB Column */}
+            <div className="flex flex-col items-center text-center group">
+              <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
+                <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
+                  GITHUB
+                </span>
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                  Hub
+                </span>
+              </div>
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+                Explore source code, personal projects, repositories, and developer contributions.
+              </p>
+              <a 
+                href="https://github.com/HanYu-Wu04" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+
+            {/* LINKEDIN Column */}
+            <div className="flex flex-col items-center text-center group">
+              <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
+                <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
+                  LINKEDIN
+                </span>
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                  In
+                </span>
+              </div>
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+                Connect for professional networking, career updates, and industry experience.
+              </p>
+              <a 
+                href="https://www.linkedin.com/in/hanyu-wu04/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+
+            {/* CONTACT Column */}
+            <div className="flex flex-col items-center text-center group">
+              <div className="relative mb-6 select-none h-[14vw] md:h-[7vw] min-h-[70px] flex items-center justify-center">
+                <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
+                  CONTACT
+                </span>
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                  Mail
+                </span>
+              </div>
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+                Reach out directly for freelance inquiries, collaborations, or general questions.
+              </p>
+              <a 
+                href="mailto:hanyuwu04@gmail.com" 
+                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Grain Finish */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat z-[100]" />
 
