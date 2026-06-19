@@ -517,9 +517,13 @@ const FluidDistortion: React.FC = () => {
   const typedKeys = useRef('');
 
   const [manifestoSeen, setManifestoSeen] = useState(false);
+  const [gallerySeen, setGallerySeen] = useState(false);
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (latest >= 0.52 && !manifestoSeen) {
       setManifestoSeen(true);
+    }
+    if (latest >= GALLERY_REVEAL_START && !gallerySeen) {
+      setGallerySeen(true);
     }
 
     const video = homeVideoRef.current;
@@ -1215,23 +1219,31 @@ const FluidDistortion: React.FC = () => {
               style={{ x: galleryX }}
               className="absolute left-0 top-0 h-[150vh] w-[470vw]"
             >
-              <div className="absolute left-[4vw] top-[14vh] max-w-[55vw] select-none">
-                <p className="font-press-start text-[9px] uppercase tracking-normal text-[#0ea5e9] mb-5">
-                  AFTER BUILDING TO SCALE
-                </p>
-                <h3 className="text-[12vw] leading-[0.82] font-black uppercase tracking-normal text-[#eef1e7] mix-blend-difference">
-                  Across
-                  <br />
-                  every
-                  <br />
-                  vertical.
+              <div className="absolute left-[4vw] top-[14vh] max-w-[55vw] select-none flex flex-col items-start gap-1">
+                <RevealLine index={0} isVisible={gallerySeen}>
+                  <p className="font-press-start text-[9px] uppercase tracking-normal text-[#0ea5e9] mb-5">
+                    AFTER BUILDING TO SCALE
+                  </p>
+                </RevealLine>
+                <h3 className="text-[12vw] leading-[0.82] font-black uppercase tracking-normal text-[#eef1e7] mix-blend-difference flex flex-col items-start">
+                  <RevealLine index={1} isVisible={gallerySeen}>
+                    <span>Across</span>
+                  </RevealLine>
+                  <RevealLine index={2} isVisible={gallerySeen}>
+                    <span>every</span>
+                  </RevealLine>
+                  <RevealLine index={3} isVisible={gallerySeen}>
+                    <span>vertical.</span>
+                  </RevealLine>
                 </h3>
               </div>
 
-              <div className="absolute left-[92vw] top-[30vh] w-[26vw] min-w-[320px] max-w-[440px] select-none">
-                <p className="text-[clamp(1.5rem,2.3vw,3rem)] font-black leading-[0.92] tracking-normal text-[#d7d9cf]">
-                  The work keeps moving: launched, shipped, refined, and scaled through each scroll.
-                </p>
+              <div className="absolute left-[92vw] top-[30vh] w-[26vw] min-w-[320px] max-w-[440px] select-none flex flex-col items-start">
+                <RevealLine index={4} isVisible={gallerySeen}>
+                  <p className="text-[clamp(1.5rem,2.3vw,3rem)] font-black leading-[0.92] tracking-normal text-[#d7d9cf]">
+                    The work keeps moving: launched, shipped, refined, and scaled through each scroll.
+                  </p>
+                </RevealLine>
                 <div className="mt-8 h-12 w-36 text-[#0ea5e9]">
                   <Stroke className="h-full w-full" color="#0ea5e9" pathLength={1} strokeWidth={3} />
                 </div>
