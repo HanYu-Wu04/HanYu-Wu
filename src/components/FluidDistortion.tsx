@@ -1319,6 +1319,10 @@ const FluidDistortion: React.FC = () => {
         <img 
           src="/left.png" 
           alt="Helmet Artwork" 
+          style={{
+            maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
+            WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)'
+          }}
           className="absolute left-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-left pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
         />
 
@@ -1326,6 +1330,10 @@ const FluidDistortion: React.FC = () => {
         <img 
           src="/right.png" 
           alt="Face Profile" 
+          style={{
+            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)',
+            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 85%)'
+          }}
           className="absolute right-0 bottom-0 h-[60vh] md:h-[80vh] w-auto object-contain object-right pointer-events-none select-none z-10 opacity-15 lg:opacity-100 transition-opacity duration-300"
         />
 
@@ -1338,20 +1346,20 @@ const FluidDistortion: React.FC = () => {
                 <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
                   GITHUB
                 </span>
-                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
                   Hub
                 </span>
               </div>
-              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                 Explore source code, personal projects, repositories, and developer contributions.
               </p>
               <a 
                 href="https://github.com/HanYu-Wu04" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </a>
@@ -1363,20 +1371,20 @@ const FluidDistortion: React.FC = () => {
                 <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
                   LINKEDIN
                 </span>
-                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
                   In
                 </span>
               </div>
-              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                 Connect for professional networking, career updates, and industry experience.
               </p>
               <a 
                 href="https://www.linkedin.com/in/hanyu-wu04/" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </a>
@@ -1388,18 +1396,18 @@ const FluidDistortion: React.FC = () => {
                 <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#e1e4da] transition-transform duration-500 group-hover:scale-102">
                   CONTACT
                 </span>
-                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#d1ff00] -rotate-6 translate-x-4 -translate-y-2 mix-blend-difference drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
+                <span className="absolute font-serif italic text-[14vw] md:text-[6vw] leading-none text-[#0ea5e9] -rotate-6 translate-x-4 -translate-y-2 drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-500 group-hover:-rotate-12 group-hover:scale-105">
                   Mail
                 </span>
               </div>
-              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6">
+              <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium">
                 Reach out directly for freelance inquiries, collaborations, or general questions.
               </p>
               <a 
                 href="mailto:hanyuwu04@gmail.com" 
-                className="w-12 h-12 bg-[#d1ff00] hover:bg-[#bcff00] text-black rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
+                className="w-12 h-12 bg-[#0ea5e9] hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 pointer-events-auto cursor-pointer"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </a>
