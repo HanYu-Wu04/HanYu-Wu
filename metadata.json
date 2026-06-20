@@ -1,8 +1,0 @@
-{
-  "name": "Lando Fluid Distortion",
-  "description": "A high-performance fluid simulation and image distortion effect inspired by landonorris.com using Three.js and GLSL.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}

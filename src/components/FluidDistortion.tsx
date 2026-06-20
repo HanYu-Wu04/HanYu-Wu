@@ -636,6 +636,8 @@ const FluidDistortion: React.FC = () => {
  
   const sceneExitStart = isMobileViewport ? 0.2725 : 0.45;
   const sceneExitEnd = isMobileViewport ? 0.2875 : 0.525;
+  const manifestoEntryStart = isMobileViewport ? 0.3225 : 0.56;
+  const manifestoTopOffset = isMobileViewport ? 'calc(100% + max(96px, 16vh))' : 'calc(100% + max(120px, 18vh))';
   const scrollHeight = isMobileViewport ? '1320vh' : '1750vh';
  
   // Scroll Progress logic
@@ -659,8 +661,13 @@ const FluidDistortion: React.FC = () => {
   
   const manifestoPaperY = useTransform(
     scrollYProgress,
-    [sceneExitStart, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS],
+    [manifestoEntryStart, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS],
     ['0%', '-225%', '-225%']
+  );
+  const manifestoOpacity = useTransform(
+    scrollYProgress,
+    [manifestoEntryStart - 0.002, manifestoEntryStart + 0.012],
+    [0, 1]
   );
   const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
   const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
@@ -1349,9 +1356,11 @@ const FluidDistortion: React.FC = () => {
           {/* Manifesto Text - Placed below the signature on the same scroll plane */}
           <motion.div
             style={{ 
-              y: manifestoPaperY
+              y: manifestoPaperY,
+              top: manifestoTopOffset,
+              opacity: manifestoOpacity,
             }}
-            className="absolute top-full left-0 right-0 h-screen z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10"
+            className="absolute left-0 right-0 h-screen z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
             <div className="relative z-20 max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
               {/* Programmer Laurel Emblem & Text above the quote */}
