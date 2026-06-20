@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { X, Download } from 'lucide-react';
 import LandoText from './LandoText';
+import SnowfallCanvas, { type ParticleWeatherMode } from './SnowfallCanvas';
 
 interface MenuOverlayProps {
   onClose: () => void;
   topUIScale: any;
+  weatherMode: ParticleWeatherMode;
 }
 
 const curtainTransition = {
@@ -52,7 +54,7 @@ const revealItem = (delay = 0) => ({
   },
 });
 
-const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
+const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherMode }) => {
   const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null);
 
   const mouseValY = useMotionValue(0);
@@ -62,20 +64,9 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
   const leftColY = useTransform(springY, [-1, 1], [40, -40]);
   const rightColY = useTransform(springY, [-1, 1], [-40, 40]);
 
-  // Playing background video initialization
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   useEffect(() => {
     // Disable background scroll
     document.body.style.overflow = 'hidden';
-
-    const video = videoRef.current;
-    if (video) {
-      video.muted = true;
-      video.play().catch(err => {
-        console.warn("Overlay video autoplay failed:", err);
-      });
-    }
 
     const handleMouseMove = (e: MouseEvent) => {
       const normalizedY = (e.clientY / window.innerHeight) * 2 - 1;
@@ -112,24 +103,15 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale }) => {
         className="absolute left-0 right-0 top-0 z-[80] h-[3px] bg-[#0ea5e9] shadow-[0_-10px_26px_rgba(14,165,233,0.45)]"
       />
 
-      {/* Background: playing snow.mp4 */}
+      {/* Lightweight procedural snow background */}
       <motion.div
         variants={contentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="absolute inset-0 z-[1] pointer-events-none select-none"
-      >
-        <video
-          ref={videoRef}
-          src="/snow.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover opacity-35"
-        />
-      </motion.div>
+        className="snow-field absolute inset-0 z-[1] pointer-events-none select-none opacity-35"
+      />
+      <SnowfallCanvas className="absolute inset-0 z-[2] pointer-events-none" density={236} opacity={0.5} mode={weatherMode} />
 
       {/* Top Header UI - Match position, styles, and scale of FluidDistortion header */}
       <motion.div

@@ -149,7 +149,7 @@ curl "http://localhost:3000/api/github-contributions?username=HanYu-Wu04"
 
 The main visual experience depends on assets in `public/`, including:
 
-- `snow.mp4`: Background snow video.
+- Procedural snow: lightweight shader/CSS snow effect used instead of a video background.
 - `base.png`: Base portrait image.
 - `top.png`: Ice/reveal portrait image.
 - `left.png` and `right.png`: Contact section artwork.

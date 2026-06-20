@@ -4,12 +4,11 @@ import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence }
 import { vertexShader, fluidFragmentShader, displayFragmentShader } from '../shaders';
 import LandoText from './LandoText';
 import Stroke from './Stroke';
-import { Download } from 'lucide-react';
+import { CloudRain, CloudSnow, Download } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
+import SnowfallCanvas, { type ParticleWeatherMode } from './SnowfallCanvas';
 
 const FINAL_SCROLL_PROGRESS = 1;
-const VIDEO_FREEZE_SCROLL_PROGRESS = 0.99;
-const FINAL_SNOW_FRAME_TIME = 5.8;
 const GALLERY_FINAL_X = '-370vw';
 const MOBILE_GALLERY_FINAL_Y = '-730vh';
 const MOBILE_GALLERY_FOOTER_TOP = '730vh';
@@ -139,15 +138,6 @@ const galleryItems = [
     topMobile: '640vh'
   },
 ];
-
-function lockVideoToFinalFrame(video: HTMLVideoElement) {
-  if (Number.isFinite(video.duration)) {
-    video.currentTime = Math.min(FINAL_SNOW_FRAME_TIME, Math.max(0, video.duration - 0.05));
-  } else {
-    video.currentTime = FINAL_SNOW_FRAME_TIME;
-  }
-  video.pause();
-}
 
 const RevealLetter: React.FC<{
   scrollYProgress: any;
@@ -656,7 +646,6 @@ const FluidDistortion: React.FC = () => {
   const boxHeight = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vh', isMobileViewport ? '36vh' : '45vh']);
   const boxY = useTransform(scrollYProgress, [0.35, 0.55], ['0%', '-20%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.25], [0, 0]);
-  const videoOpacity = useTransform(scrollYProgress, [0, 1], [1, 1]);
   
   // Section-specific opacities and offsets
   const section1Opacity = useTransform(scrollYProgress, [0, 1.0], [1, 1]);
@@ -729,23 +718,11 @@ const FluidDistortion: React.FC = () => {
   const headerLetters = "WHO AM I".split("");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const homeVideoRef = useRef<HTMLVideoElement>(null);
-  const finalFrameLockedRef = useRef(false);
-
-  useEffect(() => {
-    if (homeVideoRef.current) {
-      homeVideoRef.current.muted = true;
-      homeVideoRef.current.play().catch(err => {
-        console.warn("Home page video autoplay failed:", err);
-      });
-    }
-  }, []);
-
-
 
   const [isIceManMode, setIsIceManMode] = useState(false);
   const iceManRef = useRef(false);
   const typedKeys = useRef('');
+  const [weatherMode, setWeatherMode] = useState<ParticleWeatherMode>('snow');
 
   const [gallerySeen, setGallerySeen] = useState(false);
   const [footerSeen, setFooterSeen] = useState(false);
@@ -757,33 +734,10 @@ const FluidDistortion: React.FC = () => {
       setFooterSeen(true);
     }
 
-    const video = homeVideoRef.current;
-    if (!video) return;
-
-    if (latest >= VIDEO_FREEZE_SCROLL_PROGRESS) {
-      if (!finalFrameLockedRef.current) {
-        try {
-          lockVideoToFinalFrame(video);
-          finalFrameLockedRef.current = true;
-        } catch (err) {
-          console.warn("Could not lock snow video final frame:", err);
-          video.pause();
-        }
-      }
-      return;
-    }
-
-    finalFrameLockedRef.current = false;
-    if (video.paused) {
-      video.play().catch(err => {
-        console.warn("Home page video autoplay failed:", err);
-      });
-    }
   });
 
   // Assets
   const ASSETS = {
-    bgVideo: '/snow.mp4',
     baseImage: '/base.png',
     revealImage: '/top.png',
     iceImage: '/top.png' // Changed from /ice.png to /top.png per request
@@ -838,7 +792,6 @@ const FluidDistortion: React.FC = () => {
     ];
     let currentTargetIndex = 0;
 
-    const videoSize = new THREE.Vector2(1, 1);
     const baseSize = new THREE.Vector2(1, 1);
     const revealSize = new THREE.Vector2(1, 1);
     const iceSize = new THREE.Vector2(1, 1);
@@ -862,12 +815,10 @@ const FluidDistortion: React.FC = () => {
     const displayMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uFluid: { value: null },
-        uVideoTexture: { value: new THREE.Texture() },
         uBaseTexture: { value: new THREE.Texture() },
         uRevealTexture: { value: new THREE.Texture() },
         uIceTexture: { value: new THREE.Texture() },
         uResolution: { value: new THREE.Vector2(width, height) },
-        uVideoSize: { value: videoSize },
         uBaseSize: { value: baseSize },
         uRevealSize: { value: revealSize },
         uIceSize: { value: iceSize },
@@ -876,34 +827,13 @@ const FluidDistortion: React.FC = () => {
         uPortraitCenterY: { value: 0.63 },
         uPortraitShiftY: { value: isMobileViewport ? 0.055 : 0.0 },
         uSubjectOnlyPortrait: { value: isMobileViewport },
+        uTime: { value: 0 },
+        uBgBrightness: { value: 0.95 },
+        uBgBlurMix: { value: 0 },
       },
       vertexShader,
       fragmentShader: displayFragmentShader,
     });
-
-    const loadVideo = (url: string) => {
-      const video = document.createElement('video');
-      video.src = url;
-      video.loop = true;
-      video.muted = true;
-      video.playsInline = true;
-      video.crossOrigin = 'Anonymous';
-      video.play().catch(e => console.warn("Video play failed:", e));
-
-      video.onloadeddata = () => {
-        videoSize.set(video.videoWidth, video.videoHeight);
-        const tex = new THREE.VideoTexture(video);
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        displayMaterial.uniforms.uVideoTexture.value = tex;
-      };
-
-      video.onerror = () => {
-        console.warn(`Could not load video ${url}.`);
-      };
-
-      return video;
-    };
 
     const loadImage = (url: string, type: 'base' | 'reveal' | 'ice', sizeVector: THREE.Vector2) => {
       const img = new Image();
@@ -930,7 +860,6 @@ const FluidDistortion: React.FC = () => {
       img.src = url;
     };
 
-    const bgVideo = loadVideo(ASSETS.bgVideo);
     loadImage(ASSETS.baseImage, 'base', baseSize);
     loadImage(ASSETS.revealImage, 'reveal', revealSize);
     loadImage(ASSETS.iceImage, 'ice', iceSize);
@@ -1000,8 +929,6 @@ const FluidDistortion: React.FC = () => {
     let maskFormedProgress = 0.0;
     let currentRotationX = -0.08;
     let currentRotationY = 0.0;
-    let bgVideoFinalFrameLocked = false;
-
     const animate = () => {
       const animationId = requestAnimationFrame(animate);
       const time = performance.now() * 0.001;
@@ -1053,23 +980,6 @@ const FluidDistortion: React.FC = () => {
 
       // Read scroll and fade out ice mask opacity as user scrolls past hero section
       const currentScroll = scrollYProgress.get();
-      if (currentScroll >= VIDEO_FREEZE_SCROLL_PROGRESS) {
-        if (!bgVideoFinalFrameLocked) {
-          try {
-            lockVideoToFinalFrame(bgVideo);
-            bgVideoFinalFrameLocked = true;
-          } catch (e) {
-            console.warn("Could not lock snow video final frame:", e);
-            bgVideo.pause();
-          }
-        }
-      } else {
-        bgVideoFinalFrameLocked = false;
-        if (bgVideo.paused) {
-          bgVideo.play().catch(e => console.warn("Video play failed:", e));
-        }
-      }
-
       let scrollFade = 1.0;
       if (currentScroll > 0.05) {
         scrollFade = Math.max(0.0, 1.0 - (currentScroll - 0.05) / 0.1);
@@ -1081,6 +991,9 @@ const FluidDistortion: React.FC = () => {
       iceMaskObj.scanMaterial.uniforms.uFluid.value = currentRenderTarget.texture;
       const pr = renderer.getPixelRatio();
       iceMaskObj.scanMaterial.uniforms.uResolution.value.set(width * pr, height * pr);
+      displayMaterial.uniforms.uTime.value = time;
+      displayMaterial.uniforms.uBgBrightness.value = bgBrightness.get();
+      displayMaterial.uniforms.uBgBlurMix.value = parseFloat(videoBlur.get());
 
       // Interactive 3D ice mask tilt based on mouse position
       let targetRotX = -0.08;
@@ -1133,41 +1046,26 @@ const FluidDistortion: React.FC = () => {
       renderer.dispose();
       pingPongTargets.forEach(t => t.dispose());
       iceMaskObj.dispose();
-      bgVideo.pause();
-      bgVideo.remove();
     };
   }, []);
 
   return (
     <div ref={scrollRef} className="relative w-full min-h-screen bg-[#0A0F1A]">
-      {/* Background Snow Video - Page Wide */}
+      {/* Lightweight procedural snow background - page wide */}
       <motion.div 
         style={{ 
-          opacity: videoOpacity,
           filter: useTransform(
             [bgBrightness, videoBlur],
             ([brightness, blur]) => `brightness(${brightness}) blur(${blur})`
           )
         }}
-        className="fixed inset-0 z-[1] pointer-events-none"
-      >
-        <video 
-          ref={homeVideoRef}
-          autoPlay 
-          muted 
-          loop 
-          playsInline
-          webkit-playsinline="true"
-          preload="auto"
-          className="w-full h-full object-cover"
-        >
-          <source src={ASSETS.bgVideo} type="video/mp4" />
-        </video>
-      </motion.div>
+        className="snow-field fixed inset-0 z-[1] pointer-events-none"
+      />
+      <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={264} opacity={0.9} mode={weatherMode} />
 
       {/* Contrast Mask Overlay */}
       <motion.div
-        className="fixed inset-0 z-[2] pointer-events-none bg-[#090D16]/55 backdrop-blur-[1px]"
+        className="fixed inset-0 z-[3] pointer-events-none bg-[#090D16]/55 backdrop-blur-[1px]"
         style={{ opacity: contrastMaskOpacity }}
       />
 
@@ -1277,6 +1175,22 @@ const FluidDistortion: React.FC = () => {
 
 
       </div>
+
+      <button
+        type="button"
+        onClick={() => setWeatherMode((mode) => (mode === 'snow' ? 'rain' : 'snow'))}
+        className="fixed bottom-4 left-4 z-[130] pointer-events-auto h-11 rounded-lg border-2 border-[#0ea5e9] bg-[#0A0F1A]/72 px-3 text-[#dff8ff] backdrop-blur-md shadow-[0_4px_14px_rgba(14,165,233,0.18)] flex items-center gap-2 transition-colors hover:bg-[#0ea5e9]/16"
+        aria-label={`Switch particle effect to ${weatherMode === 'snow' ? 'rain' : 'snow'}`}
+      >
+        {weatherMode === 'snow' ? (
+          <CloudSnow className="h-5 w-5 text-[#0ea5e9]" />
+        ) : (
+          <CloudRain className="h-5 w-5 text-[#0ea5e9]" />
+        )}
+        <span className="font-press-start text-[8px] uppercase tracking-normal">
+          {weatherMode}
+        </span>
+      </button>
 
       {/* Main Experience Section */}
       <div className="relative w-full z-20" style={{ height: scrollHeight }}>
@@ -1397,6 +1311,12 @@ const FluidDistortion: React.FC = () => {
                   className="absolute inset-0 w-full h-full block cursor-none z-0"
                 />
               </motion.div>
+              <SnowfallCanvas
+                className="absolute inset-0 z-10 pointer-events-none"
+                density={176}
+                opacity={0.84}
+                mode={weatherMode}
+              />
             </motion.div>
 
             {/* Signature Overlay - Nested inside the Landing Scene to move and scale together */}
@@ -1705,6 +1625,7 @@ const FluidDistortion: React.FC = () => {
           <MenuOverlay 
             onClose={() => setIsMenuOpen(false)} 
             topUIScale={topUIScale}
+            weatherMode={weatherMode}
           />
         )}
       </AnimatePresence>

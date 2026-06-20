@@ -62,12 +62,10 @@ export const fluidFragmentShader = `
 
 export const displayFragmentShader = `
   uniform sampler2D uFluid;
-  uniform sampler2D uVideoTexture;
   uniform sampler2D uBaseTexture;
   uniform sampler2D uRevealTexture;
   uniform sampler2D uIceTexture;
   uniform vec2 uResolution;
-  uniform vec2 uVideoSize;
   uniform vec2 uBaseSize;
   uniform vec2 uRevealSize;
   uniform vec2 uIceSize;
@@ -76,6 +74,9 @@ export const displayFragmentShader = `
   uniform float uPortraitCenterY;
   uniform float uPortraitShiftY;
   uniform bool uSubjectOnlyPortrait;
+  uniform float uTime;
+  uniform float uBgBrightness;
+  uniform float uBgBlurMix;
   
   varying vec2 vUv;
 
@@ -115,6 +116,42 @@ export const displayFragmentShader = `
     return texture2D(image, zoomedUv);
   }
 
+  float hash(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
+  float snowLayer(vec2 uv, float scale, float speed, float size, float drift) {
+    vec2 gridUv = uv * scale;
+    vec2 cell = floor(gridUv);
+    vec2 local = fract(gridUv);
+    float rnd = hash(cell);
+    float y = fract(local.y + uTime * speed + rnd);
+    float x = local.x + sin((uTime * speed + rnd) * 6.2831) * drift;
+    float d = length(vec2(x, y) - vec2(0.5 + (rnd - 0.5) * 0.45, 0.5));
+    return smoothstep(size, 0.0, d) * smoothstep(0.18, 1.0, rnd);
+  }
+
+  vec3 proceduralSnow(vec2 uv, float mask, vec2 distortion) {
+    vec2 aspectUv = uv;
+    aspectUv.x *= uResolution.x / max(uResolution.y, 1.0);
+    vec2 stirredUv = aspectUv + distortion * 1.35;
+    float pushed = smoothstep(0.05, 0.7, mask);
+    stirredUv += vec2(pushed * 0.055, pushed * -0.035);
+
+    float fine = snowLayer(stirredUv + vec2(0.0, uTime * 0.015), 44.0, 0.055, 0.030, 0.20);
+    float mid = snowLayer(stirredUv + vec2(1.7, 0.3), 24.0, 0.035, 0.045, 0.16);
+    float soft = snowLayer(stirredUv + vec2(5.1, 1.9), 12.0, 0.020, 0.070, 0.10);
+    float flakes = fine * 0.45 + mid * 0.48 + soft * 0.36;
+    flakes *= 1.0 - clamp(uBgBlurMix / 18.0, 0.0, 0.45);
+
+    vec3 base = mix(vec3(0.62, 0.70, 0.76), vec3(0.82, 0.91, 0.96), uv.y);
+    vec3 haze = vec3(0.84, 0.93, 1.0) * (0.12 + pushed * 0.12);
+    vec3 snow = vec3(flakes) * mix(0.62, 1.15, pushed);
+    return (base + haze + snow) * uBgBrightness;
+  }
+
   void main() {
     float mask = texture2D(uFluid, vUv).r;
     
@@ -129,6 +166,7 @@ export const displayFragmentShader = `
     
     // Distortion vector for transition edge ripple
     vec2 distortion = vec2(mx, my) * 0.06;
+    vec3 bgColor = proceduralSnow(vUv, mask, distortion);
 
     // Sample portrait textures using undistorted vUv to prevent face from twisting
     vec4 base = sampleZoomedContain(uBaseTexture, vUv, uResolution, uBaseSize, zoom, centerY, shiftY);
@@ -159,6 +197,9 @@ export const displayFragmentShader = `
       
       finalColor = mix(base, revealTex, revealAmount);
     }
+
+    finalColor.rgb = mix(bgColor, finalColor.rgb, finalColor.a);
+    finalColor.a = max(finalColor.a, 1.0);
     
     float outsideSubject = uSubjectOnlyPortrait ? 0.0 : 1.0 - subjectMask;
     float softTrail = smoothstep(0.025, 0.55, mask);
