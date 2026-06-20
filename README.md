@@ -12,6 +12,7 @@ This project is not affiliated with Lando Norris, McLaren, or the official Lando
 
 - WebGL portrait reveal using Three.js and custom GLSL shaders.
 - Fluid distortion trail that reveals and distorts `base.png` / `top.png`.
+- Depth-map cursor parallax for `base.png`, `top.png`, and `ice.png`.
 - Interactive 3D ice/wireframe face mask that follows the portrait crop.
 - Snow/rain particle toggle with cursor wake interaction.
 - Hidden `iceman` keyboard easter egg that swaps the portrait reveal to `ice.png`.
@@ -35,13 +36,32 @@ This project is not affiliated with Lando Norris, McLaren, or the official Lando
 
 - `src/components/FluidDistortion.tsx`: Main portfolio experience. Owns scroll timing, hero portrait WebGL setup, manifesto, gallery, contact section, weather toggle, and responsive behavior.
 - `src/consoleBrand.ts`: Browser console signature that prints HanYu Wu branding on page load.
-- `src/shaders.ts`: Custom GLSL shaders for the fluid trail simulation and display pass.
+- `src/shaders.ts`: Custom GLSL shaders for the fluid trail simulation, display pass, and depth-map parallax displacement.
 - `src/components/SnowfallCanvas.tsx`: Lightweight canvas snow/rain particle system with cursor-driven wake interaction and mobile performance caps.
 - `src/components/LandoText.tsx`: Custom Lando Norris-inspired text hover effect used for nav, resume text, and brand lettering.
 - `src/components/Stroke.tsx`: SVG signature renderer. The signature path was generated with [stroke.abhii.space](https://stroke.abhii.space/) and then integrated through custom source code from that generated path.
 - `src/components/MenuOverlay.tsx`: Full-screen animated navigation overlay with weather background and preview imagery.
 - `src/components/LoadingOverlay.tsx`: Initial loading transition.
 - `src/index.css`: Tailwind import, font setup, global utility classes, and procedural snow-field background styling.
+
+## Depth Map Parallax
+
+The hero portrait uses grayscale depth maps generated with [Artificial Studio's Image Depth Map Generator](https://app.artificialstudio.ai/tools/image-depth-map-generator). Each depth map matches one portrait layer:
+
+- `public/base-depth.png`: depth map for `base.png`.
+- `public/top-depth.png`: depth map for `top.png`.
+- `public/ice-depth.png`: depth map for the hidden `iceman` asset, `ice.png`.
+
+The shader reads each depth map in `src/shaders.ts` through `sampleDepthParallax(...)`. Bright pixels shift more with the cursor, while dark pixels shift less. This creates a Lando Norris-style hero parallax effect without adding extra DOM image layers.
+
+Current depth settings:
+
+- Cursor input in `src/components/FluidDistortion.tsx`: `(mouse - 0.5) * 0.9`.
+- Cursor smoothing/easing: `0.045`, so the depth movement trails the cursor instead of snapping.
+- Base portrait displacement strength: `0.032`.
+- Top/reveal portrait displacement strength: `0.034`.
+- Ice easter-egg displacement strength: `0.034`.
+- Out-of-bounds displaced UVs return transparent pixels instead of clamping to the image edge. This avoids the duplicated/ghost-image look when the cursor moves far left or right.
 
 ## Project Structure
 
@@ -115,6 +135,7 @@ Deploy the generated `dist/` folder as a static site. On Vercel, use:
 - `base.png`: Base portrait image.
 - `top.png`: Ice/reveal portrait image.
 - `ice.png`: Hidden easter egg portrait used after typing `iceman`.
+- `base-depth.png`, `top-depth.png`, `ice-depth.png`: Grayscale depth maps generated with [Artificial Studio](https://app.artificialstudio.ai/tools/image-depth-map-generator) for cursor parallax displacement.
 - `left.png` and `right.png`: Contact section artwork.
 - `HanYu_Wu_Resume.pdf`: Resume download target.
 - Project images such as `calpoly.jpg`, `sparkliai.png`, `hack4impact.png`, `campusirl.png`, and `grad.jpg`.
@@ -142,6 +163,7 @@ The current build may warn that some chunks are larger than 500 kB. That warning
 
 - 使用 Three.js 和自定义 GLSL shader 实现 WebGL 人像揭示效果。
 - 使用流体轨迹来揭示和扭曲 `base.png` / `top.png`。
+- `base.png`、`top.png` 和 `ice.png` 都有 depth map 鼠标视差效果。
 - 交互式 3D 冰霜/线框面部结构，会随着人像裁切比例保持对齐。
 - 雪/雨粒子切换，并支持鼠标轨迹推动粒子。
 - 隐藏的 `iceman` 键盘彩蛋，输入后会把人像 reveal 切换到 `ice.png`。
@@ -165,13 +187,32 @@ The current build may warn that some chunks are larger than 500 kB. That warning
 
 - `src/components/FluidDistortion.tsx`：主作品集页面，包含滚动时间轴、WebGL hero、人像、manifesto、gallery、contact、天气切换和响应式逻辑。
 - `src/consoleBrand.ts`：页面加载时在浏览器 console 打印 HanYu Wu 品牌字样。
-- `src/shaders.ts`：自定义 GLSL shader，用于流体轨迹模拟和最终画面显示。
+- `src/shaders.ts`：自定义 GLSL shader，用于流体轨迹模拟、最终画面显示和 depth map 视差位移。
 - `src/components/SnowfallCanvas.tsx`：轻量 canvas 雪/雨粒子系统，支持鼠标推动和移动端性能限制。
 - `src/components/LandoText.tsx`：类 Lando Norris 的文字 hover 动效。
 - `src/components/Stroke.tsx`：SVG 签名渲染组件。签名路径通过 [stroke.abhii.space](https://stroke.abhii.space/) 生成，再把网站生成的 source code 集成到项目中。
 - `src/components/MenuOverlay.tsx`：全屏导航 overlay，带天气背景和图片预览。
 - `src/components/LoadingOverlay.tsx`：初始加载动画。
 - `src/index.css`：Tailwind 引入、字体、全局工具类和 procedural snow-field 背景。
+
+## Depth Map 视差
+
+Hero 人像使用的灰度 depth map 是通过 [Artificial Studio Image Depth Map Generator](https://app.artificialstudio.ai/tools/image-depth-map-generator) 生成的。每个 depth map 都对应一张人像图：
+
+- `public/base-depth.png`：对应 `base.png`。
+- `public/top-depth.png`：对应 `top.png`。
+- `public/ice-depth.png`：对应隐藏彩蛋 `iceman` 使用的 `ice.png`。
+
+Shader 会在 `src/shaders.ts` 的 `sampleDepthParallax(...)` 中读取 depth map。越亮的像素跟随鼠标移动越明显，越暗的像素移动越少，这样可以产生类似 Lando Norris hero section 的 3D 视差效果，同时不需要额外叠加 DOM 图片层。
+
+当前 depth 参数：
+
+- 鼠标输入在 `src/components/FluidDistortion.tsx` 中被缩放为 `(mouse - 0.5) * 0.9`。
+- 鼠标平滑系数为 `0.045`，所以 depth 位移会慢慢跟随鼠标，而不是突然跳动。
+- `base.png` 位移强度：`0.032`。
+- `top.png` / reveal 图层位移强度：`0.034`。
+- `ice.png` 彩蛋图层位移强度：`0.034`。
+- 如果位移后的 UV 超出图片边界，shader 会返回透明像素，而不是 clamp 到图片边缘。这样可以避免鼠标移动太远时出现重影或第二层图片的感觉。
 
 ## 本地运行
 

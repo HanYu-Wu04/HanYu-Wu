@@ -747,7 +747,10 @@ const FluidDistortion: React.FC = () => {
   const ASSETS = {
     baseImage: '/base.png',
     revealImage: '/top.png',
-    iceImage: '/ice.png'
+    iceImage: '/ice.png',
+    baseDepthImage: '/base-depth.png',
+    revealDepthImage: '/top-depth.png',
+    iceDepthImage: '/ice-depth.png',
   };
 
   useEffect(() => {
@@ -773,6 +776,7 @@ const FluidDistortion: React.FC = () => {
     const prevMouse = new THREE.Vector2(0.5, 0.5);
     const autoMouse = new THREE.Vector2(0.5, 0.5);
     const prevAutoMouse = new THREE.Vector2(0.5, 0.5);
+    const parallax = new THREE.Vector2(0, 0);
     let isMoving = false;
     let lastMoveTime = -10000; // Start with idle status to trigger auto-brush immediately
     
@@ -825,10 +829,14 @@ const FluidDistortion: React.FC = () => {
         uBaseTexture: { value: new THREE.Texture() },
         uRevealTexture: { value: new THREE.Texture() },
         uIceTexture: { value: new THREE.Texture() },
+        uBaseDepthTexture: { value: new THREE.Texture() },
+        uRevealDepthTexture: { value: new THREE.Texture() },
+        uIceDepthTexture: { value: new THREE.Texture() },
         uResolution: { value: new THREE.Vector2(width, height) },
         uBaseSize: { value: baseSize },
         uRevealSize: { value: revealSize },
         uIceSize: { value: iceSize },
+        uParallax: { value: parallax },
         uIceManMode: { value: false },
         uPortraitZoom: { value: isMobileViewport ? 1.32 : 1.35 },
         uPortraitCenterY: { value: 0.63 },
@@ -842,11 +850,11 @@ const FluidDistortion: React.FC = () => {
       fragmentShader: displayFragmentShader,
     });
 
-    const loadImage = (url: string, type: 'base' | 'reveal' | 'ice', sizeVector: THREE.Vector2) => {
+    const loadImage = (url: string, type: 'base' | 'reveal' | 'ice' | 'baseDepth' | 'revealDepth' | 'iceDepth', sizeVector?: THREE.Vector2) => {
       const img = new Image();
       img.crossOrigin = 'Anonymous';
       img.onload = () => {
-        sizeVector.set(img.width, img.height);
+        sizeVector?.set(img.width, img.height);
         const tex = new THREE.Texture(img);
         tex.needsUpdate = true;
         tex.minFilter = THREE.LinearFilter;
@@ -856,8 +864,14 @@ const FluidDistortion: React.FC = () => {
           displayMaterial.uniforms.uBaseTexture.value = tex;
         } else if (type === 'reveal') {
           displayMaterial.uniforms.uRevealTexture.value = tex;
-        } else {
+        } else if (type === 'ice') {
           displayMaterial.uniforms.uIceTexture.value = tex;
+        } else if (type === 'baseDepth') {
+          displayMaterial.uniforms.uBaseDepthTexture.value = tex;
+        } else if (type === 'revealDepth') {
+          displayMaterial.uniforms.uRevealDepthTexture.value = tex;
+        } else {
+          displayMaterial.uniforms.uIceDepthTexture.value = tex;
         }
       };
       
@@ -870,6 +884,9 @@ const FluidDistortion: React.FC = () => {
     loadImage(ASSETS.baseImage, 'base', baseSize);
     loadImage(ASSETS.revealImage, 'reveal', revealSize);
     loadImage(ASSETS.iceImage, 'ice', iceSize);
+    loadImage(ASSETS.baseDepthImage, 'baseDepth');
+    loadImage(ASSETS.revealDepthImage, 'revealDepth');
+    loadImage(ASSETS.iceDepthImage, 'iceDepth');
 
     const planeGeometry = new THREE.PlaneGeometry(2, 2);
     const displayMesh = new THREE.Mesh(planeGeometry, displayMaterial);
@@ -1001,6 +1018,11 @@ const FluidDistortion: React.FC = () => {
       displayMaterial.uniforms.uTime.value = time;
       displayMaterial.uniforms.uBgBrightness.value = bgBrightness.get();
       displayMaterial.uniforms.uBgBlurMix.value = parseFloat(videoBlur.get());
+      const targetParallaxX = (mouse.x - 0.5) * 0.9;
+      const targetParallaxY = (mouse.y - 0.5) * 0.9;
+      parallax.x += (targetParallaxX - parallax.x) * 0.045;
+      parallax.y += (targetParallaxY - parallax.y) * 0.045;
+      displayMaterial.uniforms.uParallax.value.copy(parallax);
 
       // Interactive 3D ice mask tilt based on mouse position
       let targetRotX = -0.08;

@@ -65,10 +65,14 @@ export const displayFragmentShader = `
   uniform sampler2D uBaseTexture;
   uniform sampler2D uRevealTexture;
   uniform sampler2D uIceTexture;
+  uniform sampler2D uBaseDepthTexture;
+  uniform sampler2D uRevealDepthTexture;
+  uniform sampler2D uIceDepthTexture;
   uniform vec2 uResolution;
   uniform vec2 uBaseSize;
   uniform vec2 uRevealSize;
   uniform vec2 uIceSize;
+  uniform vec2 uParallax;
   uniform bool uIceManMode;
   uniform float uPortraitZoom;
   uniform float uPortraitCenterY;
@@ -103,17 +107,48 @@ export const displayFragmentShader = `
     return smoothstep(0.0, 0.08, imageUv.x) * smoothstep(1.0, 0.92, imageUv.x);
   }
 
-  vec4 sampleZoomedContain(sampler2D image, vec2 uv, vec2 targetSize, vec2 textureSize, float zoom, float centerY, float shiftY) {
+  vec2 zoomedContainUv(vec2 uv, vec2 targetSize, vec2 textureSize, float zoom, float centerY, float shiftY) {
     vec2 imageUv = containUv(uv, targetSize, textureSize) + vec2(0.0, shiftY);
     if (imageUv.x < 0.0 || imageUv.x > 1.0 || imageUv.y < 0.0 || imageUv.y > 1.0) {
-      return vec4(0.0);
+      return vec2(-1.0);
     }
     
     // Zoom in around the specified center (focusing on head and shoulders)
     vec2 zoomedUv = (imageUv - vec2(0.5, centerY)) / zoom + vec2(0.5, centerY);
-    zoomedUv = clamp(zoomedUv, 0.001, 0.999);
-    
-    return texture2D(image, zoomedUv);
+    return zoomedUv;
+  }
+
+  vec4 sampleZoomedContain(sampler2D image, vec2 uv, vec2 targetSize, vec2 textureSize, float zoom, float centerY, float shiftY) {
+    vec2 zoomedUv = zoomedContainUv(uv, targetSize, textureSize, zoom, centerY, shiftY);
+    if (zoomedUv.x < 0.0 || zoomedUv.x > 1.0 || zoomedUv.y < 0.0 || zoomedUv.y > 1.0) {
+      return vec4(0.0);
+    }
+    return texture2D(image, clamp(zoomedUv, 0.001, 0.999));
+  }
+
+  vec4 sampleDepthParallax(
+    sampler2D image,
+    sampler2D depthMap,
+    vec2 uv,
+    vec2 targetSize,
+    vec2 textureSize,
+    float zoom,
+    float centerY,
+    float shiftY,
+    float strength
+  ) {
+    vec2 zoomedUv = zoomedContainUv(uv, targetSize, textureSize, zoom, centerY, shiftY);
+    if (zoomedUv.x < 0.0 || zoomedUv.x > 1.0 || zoomedUv.y < 0.0 || zoomedUv.y > 1.0) {
+      return vec4(0.0);
+    }
+
+    vec2 clampedUv = clamp(zoomedUv, 0.001, 0.999);
+    float depth = texture2D(depthMap, clampedUv).r;
+    vec2 parallaxUv = clampedUv - uParallax * depth * strength;
+    if (parallaxUv.x < 0.0 || parallaxUv.x > 1.0 || parallaxUv.y < 0.0 || parallaxUv.y > 1.0) {
+      return vec4(0.0);
+    }
+    return texture2D(image, parallaxUv);
   }
 
   float hash(vec2 p) {
@@ -169,9 +204,9 @@ export const displayFragmentShader = `
     vec3 bgColor = proceduralSnow(vUv, mask, distortion);
 
     // Sample portrait textures using undistorted vUv to prevent face from twisting
-    vec4 base = sampleZoomedContain(uBaseTexture, vUv, uResolution, uBaseSize, zoom, centerY, shiftY);
-    vec4 iceTex = sampleZoomedContain(uIceTexture, vUv, uResolution, uIceSize, zoom, centerY, shiftY);
-    vec4 revealBase = sampleZoomedContain(uRevealTexture, vUv, uResolution, uRevealSize, zoom, centerY, shiftY);
+    vec4 base = sampleDepthParallax(uBaseTexture, uBaseDepthTexture, vUv, uResolution, uBaseSize, zoom, centerY, shiftY, 0.032);
+    vec4 iceTex = sampleDepthParallax(uIceTexture, uIceDepthTexture, vUv, uResolution, uIceSize, zoom, centerY, shiftY, 0.034);
+    vec4 revealBase = sampleDepthParallax(uRevealTexture, uRevealDepthTexture, vUv, uResolution, uRevealSize, zoom, centerY, shiftY, 0.034);
     
     float alphaMask = max(base.a, revealBase.a);
     float subjectMask = containMask(vUv, uResolution, uBaseSize, shiftY) * smoothstep(0.02, 0.2, alphaMask);
@@ -190,9 +225,9 @@ export const displayFragmentShader = `
       float edge = revealAmount * (1.0 - revealAmount) * 4.0 * subjectMask;
       float shift = edge * 0.006 + length(distortion) * 0.03;
       
-      float cr = sampleZoomedContain(uRevealTexture, vUv + vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY).r;
+      float cr = sampleDepthParallax(uRevealTexture, uRevealDepthTexture, vUv + vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY, 0.034).r;
       float cg = revealBase.g;
-      float cb = sampleZoomedContain(uRevealTexture, vUv - vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY).b;
+      float cb = sampleDepthParallax(uRevealTexture, uRevealDepthTexture, vUv - vec2(shift, 0.0), uResolution, uRevealSize, zoom, centerY, shiftY, 0.034).b;
       vec4 revealTex = vec4(cr, cg, cb, revealBase.a);
       
       finalColor = mix(base, revealTex, revealAmount);
