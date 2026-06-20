@@ -12,6 +12,8 @@ const FINAL_SCROLL_PROGRESS = 1;
 const GALLERY_FINAL_X = '-370vw';
 const MOBILE_GALLERY_FINAL_Y = '-730vh';
 const MOBILE_GALLERY_FOOTER_TOP = '730vh';
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
 
 const galleryItems = [
   {
@@ -19,7 +21,7 @@ const galleryItems = [
     title: 'CAL POLY',
     meta: 'FIRST ARRIVAL / SAN LUIS OBISPO',
     src: '/calpoly.jpg',
-    left: '56vw',
+    left: '64vw',
     top: '22vh',
     width: '26vw',
     minWidth: '300px',
@@ -394,7 +396,7 @@ const RevealLine: React.FC<{
       transition: {
         delay: index * 0.22,
         duration: 0.65,
-        ease: [0.76, 0, 0.24, 1] as any
+        ease: EASE_IN_OUT
       }
     }
   };
@@ -494,7 +496,7 @@ const GalleryCard: React.FC<{
         <RevealLine index={index * 2 + 2} isVisible={gallerySeen}>
           <motion.h4
             style={{ color: galleryTextColor }}
-            className="mt-2 font-press-start text-[10px] leading-[1.45] transition-colors duration-300 group-hover:text-[#0ea5e9]!"
+            className="mt-2 font-press-start text-[10px] leading-[1.45] transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-[#0ea5e9]!"
           >
             {item.title}
           </motion.h4>
@@ -511,7 +513,7 @@ const GalleryCard: React.FC<{
       
       <motion.div
         style={{ borderColor: cardBorderColor }}
-        className="relative overflow-hidden rounded-sm border bg-[#0F172A]/40 shadow-md transition-all duration-500 ease-out group-hover:border-[#0ea5e9]/50 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5"
+        className="relative overflow-hidden rounded-sm border bg-[#0F172A]/40 shadow-md transition-[border-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:border-[#0ea5e9]/50 group-hover:shadow-lg group-hover:shadow-[#0ea5e9]/5"
       >
         {/* Browser Top Bar for Web Projects */}
         {isWeb && (
@@ -590,8 +592,8 @@ const GalleryCard: React.FC<{
             alt={item.title}
             style={{ aspectRatio: item.aspectRatio }}
             whileHover={{ scale: 1.03 }}
-            transition={{ duration: 0.5, ease: [0.215, 0.61, 0.355, 1] }}
-            className={`w-full object-cover transition-all duration-500 ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
+            transition={{ duration: 0.22, ease: EASE_OUT }}
+            className={`w-full object-cover transition-[filter,opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${item.muted ? 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100' : 'opacity-100'}`}
           />
 
           {/* Grid overlay for brutalist/thematic border aesthetic */}
@@ -636,8 +638,8 @@ const FluidDistortion: React.FC = () => {
  
   const sceneExitStart = isMobileViewport ? 0.2725 : 0.45;
   const sceneExitEnd = isMobileViewport ? 0.2875 : 0.525;
-  const manifestoEntryStart = isMobileViewport ? 0.3225 : 0.56;
-  const manifestoTopOffset = isMobileViewport ? 'calc(100% + max(96px, 16vh))' : 'calc(100% + max(120px, 18vh))';
+  const manifestoEntryStart = isMobileViewport ? 0.30 : 0.43;
+  const manifestoTopOffset = isMobileViewport ? 'calc(100% + max(24px, 5vh))' : 'calc(100% + max(32px, 6vh))';
   const scrollHeight = isMobileViewport ? '1320vh' : '1750vh';
  
   // Scroll Progress logic
@@ -663,11 +665,6 @@ const FluidDistortion: React.FC = () => {
     scrollYProgress,
     [manifestoEntryStart, MANIFESTO_EXIT_END, FINAL_SCROLL_PROGRESS],
     ['0%', '-225%', '-225%']
-  );
-  const manifestoOpacity = useTransform(
-    scrollYProgress,
-    [manifestoEntryStart - 0.002, manifestoEntryStart + 0.012],
-    [0, 1]
   );
   const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
   const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
@@ -1132,7 +1129,7 @@ const FluidDistortion: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 whileTap={{ scale: 0.98 }}
-                className="h-10 px-4 bg-[#0ea5e9] rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
+                className="h-10 px-4 bg-[#0ea5e9] rounded-lg flex items-center justify-center gap-1.5 transition-[background-color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
               >
                 <Download className="w-4 h-4 text-black" />
                 <span className="text-[9px] font-normal uppercase tracking-normal text-black font-press-start">
@@ -1170,7 +1167,7 @@ const FluidDistortion: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   whileTap={{ scale: 0.98 }}
-                  className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
+                  className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-[background-color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
                 >
                   <Download className="w-5 h-5 md:w-6 md:h-6 text-black" />
                   <span className="text-xs md:text-sm font-normal uppercase tracking-normal text-black font-press-start">
@@ -1184,7 +1181,7 @@ const FluidDistortion: React.FC = () => {
                 onClick={() => setIsMenuOpen(true)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-10 h-10 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-transparent hover:bg-transparent rounded-lg md:rounded-xl flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-all cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/menu"
+                className="w-10 h-10 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-transparent hover:bg-transparent rounded-lg md:rounded-xl flex flex-col items-center justify-center gap-1 md:gap-1.5 transition-[border-color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/menu"
                 aria-label="Menu"
               >
                 <motion.div 
@@ -1268,10 +1265,11 @@ const FluidDistortion: React.FC = () => {
                     fill: isHeaderLogoHovered ? undefined : scrollFillColor,
                   }}
                   transition={isHeaderLogoHovered ? {
-                    pathLength: { duration: 0.8, ease: "easeInOut" },
-                    fill: { delay: 0.8, duration: 0.4, ease: "easeInOut" }
+                    pathLength: { duration: 0.26, ease: EASE_IN_OUT },
+                    fill: { delay: 0.08, duration: 0.18, ease: EASE_OUT }
                   } : {
-                    duration: 0.3
+                    duration: 0.18,
+                    ease: EASE_OUT
                   }}
                 />
               </svg>
@@ -1380,7 +1378,6 @@ const FluidDistortion: React.FC = () => {
             style={{ 
               y: manifestoPaperY,
               top: manifestoTopOffset,
-              opacity: manifestoOpacity,
             }}
             className="absolute left-0 right-0 h-screen z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
@@ -1466,8 +1463,8 @@ const FluidDistortion: React.FC = () => {
               className={isMobileViewport ? "absolute left-0 top-0 w-full h-[950vh]" : "absolute left-0 top-0 h-[150vh] w-[470vw]"}
             >
               <div
-                style={isMobileViewport ? { left: '5vw', top: '10vh', maxWidth: '90vw' } : {}}
-                className="absolute left-[4vw] top-[14vh] max-w-[90vw] md:max-w-[55vw] select-none flex flex-col items-start gap-1"
+                style={isMobileViewport ? { left: '5vw', top: '12vh', maxWidth: '90vw' } : {}}
+                className="absolute left-[4vw] top-[17vh] max-w-[90vw] md:max-w-[55vw] select-none flex flex-col items-start gap-1"
               >
                 <RevealLine index={0} isVisible={gallerySeen}>
                   <p className="font-press-start text-[9px] uppercase tracking-normal text-[#0ea5e9] mb-5">
@@ -1569,23 +1566,23 @@ const FluidDistortion: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                           transition={{ delay: 0 * 0.15 + 0.20, duration: 0.4 }}
-                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-[color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
                         >
                           Hub
                         </motion.span>
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black">
                           <RevealLine index={0} isVisible={footerSeen}>
                             GITHUB
                           </RevealLine>
                         </span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black/80">
                         Check out what I’m building, from side projects to open-source code.
                       </p>
                       <div 
-                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -1603,23 +1600,23 @@ const FluidDistortion: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                           transition={{ delay: 1 * 0.15 + 0.20, duration: 0.4 }}
-                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-[color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
                         >
                           In
                         </motion.span>
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black">
                           <RevealLine index={1} isVisible={footerSeen}>
                             LINKEDIN
                           </RevealLine>
                         </span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black/80">
                         Let’s connect! See my professional background and industry experience.
                       </p>
                       <div 
-                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -1635,23 +1632,23 @@ const FluidDistortion: React.FC = () => {
                           initial={{ opacity: 0, y: 10 }}
                           animate={footerSeen ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
                           transition={{ delay: 2 * 0.15 + 0.20, duration: 0.4 }}
-                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-all duration-500 group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
+                          className="font-serif italic text-[5vw] md:text-[2.2vw] leading-none text-[#0ea5e9] -rotate-6 mb-1 transition-[color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:-rotate-12 group-hover:-translate-y-1.5 group-hover:scale-110 group-hover:text-cyan-400 select-none pointer-events-none"
                         >
                           Mail
                         </motion.span>
-                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-500 group-hover:text-black">
+                        <span className="font-outfit font-black text-[12vw] md:text-[5vw] leading-none uppercase tracking-tighter text-[#20271d]/20 transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black">
                           <RevealLine index={2} isVisible={footerSeen}>
                             EMAIL
                           </RevealLine>
                         </span>
                       </div>
-                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
+                      <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:text-black/80">
                         Have a project in mind? Drop me a line for inquiries or collaborations.
                       </p>
                       <div 
-                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
+                        className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-[background-color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-md group-hover:shadow-lg group-hover:scale-105"
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-300 text-white">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover:translate-x-0.5 transition-transform duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] text-white">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
                       </div>

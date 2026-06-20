@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'motion/react';
 import { X, Download } from 'lucide-react';
 import LandoText from './LandoText';
 import SnowfallCanvas, { type ParticleWeatherMode } from './SnowfallCanvas';
@@ -10,9 +10,12 @@ interface MenuOverlayProps {
   weatherMode: ParticleWeatherMode;
 }
 
+const EASE_OUT = [0.23, 1, 0.32, 1] as const;
+const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
+
 const curtainTransition = {
-  duration: 0.74,
-  ease: [0.76, 0, 0.24, 1] as const,
+  duration: 0.48,
+  ease: EASE_IN_OUT,
 };
 
 const contentVariants = {
@@ -20,16 +23,16 @@ const contentVariants = {
   visible: {
     y: 0,
     transition: {
-      duration: 0.74,
-      ease: [0.76, 0, 0.24, 1] as const,
+      duration: 0.42,
+      ease: EASE_OUT,
       delay: 0.04,
     },
   },
   exit: {
     y: -22,
     transition: {
-      duration: 0.74,
-      ease: [0.76, 0, 0.24, 1] as const,
+      duration: 0.28,
+      ease: EASE_OUT,
     },
   },
 };
@@ -40,22 +43,43 @@ const revealItem = (delay = 0) => ({
     clipPath: 'inset(0 0 0% 0)',
     y: 0,
     transition: {
-      clipPath: { duration: 0.58, ease: [0.76, 0, 0.24, 1] as const, delay },
-      y: { duration: 0.58, ease: [0.76, 0, 0.24, 1] as const, delay },
+      clipPath: { duration: 0.34, ease: EASE_OUT, delay },
+      y: { duration: 0.34, ease: EASE_OUT, delay },
     },
   },
   exit: {
     clipPath: 'inset(0 0 100% 0)',
     y: -10,
     transition: {
-      clipPath: { duration: 0.48, ease: [0.76, 0, 0.24, 1] as const, delay: Math.max(0, delay * 0.35) },
-      y: { duration: 0.48, ease: [0.76, 0, 0.24, 1] as const, delay: Math.max(0, delay * 0.35) },
+      clipPath: { duration: 0.24, ease: EASE_OUT, delay: Math.max(0, delay * 0.25) },
+      y: { duration: 0.24, ease: EASE_OUT, delay: Math.max(0, delay * 0.25) },
     },
+  },
+});
+
+const reducedRevealItem = (delay = 0) => ({
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: { duration: 0.18, ease: EASE_OUT, delay: Math.min(delay, 0.12) },
+  },
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.12, ease: EASE_OUT },
   },
 });
 
 const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherMode }) => {
   const [activeHoverIndex, setActiveHoverIndex] = useState<number | null>(null);
+  const reduceMotion = useReducedMotion();
+  const activeContentVariants = reduceMotion
+    ? {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { duration: 0.18, ease: EASE_OUT } },
+        exit: { opacity: 0, transition: { duration: 0.12, ease: EASE_OUT } },
+      }
+    : contentVariants;
+  const activeRevealItem = reduceMotion ? reducedRevealItem : revealItem;
 
   const mouseValY = useMotionValue(0);
   const springY = useSpring(mouseValY, { damping: 40, stiffness: 150 });
@@ -68,6 +92,12 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
     // Disable background scroll
     document.body.style.overflow = 'hidden';
 
+    if (reduceMotion) {
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       const normalizedY = (e.clientY / window.innerHeight) * 2 - 1;
       mouseValY.set(normalizedY);
@@ -78,7 +108,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
       document.body.style.overflow = 'unset';
       window.removeEventListener('mousemove', handleMouseMove);
     };
-  }, [mouseValY]);
+  }, [mouseValY, reduceMotion]);
 
   const menuLinks = [
     { name: 'HOME', href: '#', onClick: (e: React.MouseEvent) => { e.preventDefault(); onClose(); } },
@@ -89,23 +119,23 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
 
   return (
     <motion.div
-      initial={{ clipPath: 'inset(0 0 100% 0)', y: '-6%' }}
-      animate={{ clipPath: 'inset(0 0 0% 0)', y: '0%' }}
-      exit={{ clipPath: 'inset(0 0 100% 0)', y: '-8%' }}
-      transition={curtainTransition}
+      initial={reduceMotion ? { opacity: 0 } : { clipPath: 'inset(0 0 100% 0)', y: '-6%' }}
+      animate={reduceMotion ? { opacity: 1 } : { clipPath: 'inset(0 0 0% 0)', y: '0%' }}
+      exit={reduceMotion ? { opacity: 0 } : { clipPath: 'inset(0 0 100% 0)', y: '-8%' }}
+      transition={reduceMotion ? { duration: 0.18, ease: EASE_OUT } : curtainTransition}
       className="fixed inset-0 z-[200] bg-[#0A0F1A] select-none overflow-hidden"
     >
       <motion.div
-        initial={{ y: '-4px', opacity: 0 }}
-        animate={{ y: '100vh', opacity: 1 }}
-        exit={{ y: '-4px', opacity: 1 }}
-        transition={curtainTransition}
+        initial={reduceMotion ? { opacity: 0 } : { y: '-4px', opacity: 0 }}
+        animate={reduceMotion ? { opacity: 0 } : { y: '100vh', opacity: 1 }}
+        exit={reduceMotion ? { opacity: 0 } : { y: '-4px', opacity: 1 }}
+        transition={reduceMotion ? { duration: 0.12, ease: EASE_OUT } : curtainTransition}
         className="absolute left-0 right-0 top-0 z-[80] h-[3px] bg-[#0ea5e9] shadow-[0_-10px_26px_rgba(14,165,233,0.45)]"
       />
 
       {/* Lightweight procedural snow background */}
       <motion.div
-        variants={contentVariants}
+        variants={activeContentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
@@ -115,7 +145,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
 
       {/* Top Header UI - Match position, styles, and scale of FluidDistortion header */}
       <motion.div
-        variants={contentVariants}
+        variants={activeContentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
@@ -123,7 +153,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
       >
         {/* Top Left Logo/Name */}
         <motion.div
-          {...revealItem(0.06)}
+          {...activeRevealItem(0.06)}
           className="pointer-events-auto cursor-pointer flex flex-col pt-1 select-none group leading-[0.7] md:leading-[0.7] gap-0 origin-top-left"
           style={{
             color: '#ffffff',
@@ -140,7 +170,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
 
         {/* Top Right Buttons: Resume & Close */}
         <motion.div
-          {...revealItem(0.12)}
+          {...activeRevealItem(0.12)}
           className="pointer-events-auto pt-1 flex items-center gap-2 md:gap-3 origin-top-right"
           style={{ scale: topUIScale }}
         >
@@ -150,7 +180,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
             target="_blank"
             rel="noopener noreferrer"
             whileTap={{ scale: 0.98 }}
-            className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-all shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
+            className="h-12 md:h-14 px-5 md:px-8 bg-[#0ea5e9] rounded-xl flex items-center justify-center gap-2 md:gap-3 transition-[background-color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[0_4px_12px_rgba(14,165,233,0.3)] text-black group"
           >
             <Download className="w-5 h-5 md:w-6 md:h-6 text-black" />
             <span className="text-xs md:text-sm font-normal uppercase tracking-normal text-black font-press-start">
@@ -163,7 +193,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
             onClick={onClose}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-12 h-12 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-slate-950/40 hover:bg-slate-950/60 rounded-xl flex items-center justify-center transition-all cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/close"
+            className="w-12 h-12 md:w-14 md:h-14 border-[3px] border-[#0ea5e9] bg-slate-950/40 hover:bg-slate-950/60 rounded-xl flex items-center justify-center transition-[background-color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer shadow-[0_4px_12px_rgba(14,165,233,0.05)] hover:shadow-[0_4px_12px_rgba(14,165,233,0.3)] group/close"
             aria-label="Close menu"
           >
             <X className="w-5 md:w-6 h-5 md:h-6 text-[#0ea5e9] group-hover/close:text-white transition-colors" />
@@ -173,7 +203,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
 
       {/* Left Section: 4 Images in a two-column grid */}
       <motion.div
-        variants={contentVariants}
+        variants={activeContentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
@@ -185,22 +215,22 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
           className="flex flex-col gap-6 w-[250px] xl:w-[300px]"
         >
           {/* Image 1: top.png (HOME) */}
-          <motion.div {...revealItem(0.12)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...activeRevealItem(0.12)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/top.png" 
               alt="Home Preview" 
-              className={`w-full h-full object-cover transition-all duration-700 ${
+              className={`w-full h-full object-cover transition-[filter,opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                 activeHoverIndex === 0 ? 'grayscale-0 scale-[1.04] opacity-100' : 
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
           </motion.div>
           {/* Image 2: github.png (GITHUB) */}
-          <motion.div {...revealItem(0.24)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...activeRevealItem(0.24)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/github.png" 
               alt="GitHub Profile Preview" 
-              className={`w-full h-full object-cover transition-all duration-700 ${
+              className={`w-full h-full object-cover transition-[filter,opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                 activeHoverIndex === 1 ? 'grayscale-0 scale-[1.04] opacity-100' : 
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
@@ -214,22 +244,22 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
           className="flex flex-col gap-6 w-[250px] xl:w-[300px] pt-12"
         >
           {/* Image 3: linkedin.jpeg (LINKEDIN) */}
-          <motion.div {...revealItem(0.18)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...activeRevealItem(0.18)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/linkedin.jpeg" 
               alt="LinkedIn Profile Preview" 
-              className={`w-full h-full object-cover transition-all duration-700 ${
+              className={`w-full h-full object-cover transition-[filter,opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                 activeHoverIndex === 2 ? 'grayscale-0 scale-[1.04] opacity-100' : 
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
             />
           </motion.div>
           {/* Image 4: base.png (CONTACT) */}
-          <motion.div {...revealItem(0.30)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
+          <motion.div {...activeRevealItem(0.30)} style={{ aspectRatio: '15 / 16' }} className="relative rounded-none overflow-hidden shadow-2xl border border-white/5 bg-slate-950/20">
             <img 
               src="/base.png" 
               alt="Contact Preview" 
-              className={`w-full h-full object-cover transition-all duration-700 ${
+              className={`w-full h-full object-cover transition-[filter,opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                 activeHoverIndex === 3 ? 'grayscale-0 scale-[1.04] opacity-100' : 
                 activeHoverIndex === null ? 'grayscale opacity-50' : 'grayscale opacity-20'
               }`}
@@ -240,7 +270,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
 
       {/* Right Section: Vertical Menu Links (Centered) */}
       <motion.div
-        variants={contentVariants}
+        variants={activeContentVariants}
         initial="hidden"
         animate="visible"
         exit="exit"
@@ -249,7 +279,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
         {/* Links Container */}
         <div className="flex flex-col items-center gap-0">
           {menuLinks.map((link, index) => (
-            <motion.div key={index} {...revealItem(0.14 + index * 0.09)} className="relative py-0 flex flex-col items-center justify-center w-full">
+            <motion.div key={index} {...activeRevealItem(0.14 + index * 0.09)} className="relative py-0 flex flex-col items-center justify-center w-full">
               <a
                 href={link.href}
                 target={link.target}
@@ -270,7 +300,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
                   preserveAspectRatio="none"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  transition={{ duration: 0.18, ease: EASE_IN_OUT }}
                 >
                   <path 
                     d="M 0,5 Q 5,2 10,5 T 20,5 T 30,5 T 40,5 T 50,5 T 60,5 T 70,5 T 80,5 T 90,5 T 100,5" 
@@ -284,7 +314,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
           ))}
 
           {/* Programmer laurels emblem at the bottom of links */}
-          <motion.div {...revealItem(0.52)} className="flex flex-col items-center gap-1 select-none mt-8 border-t border-white/10 pt-6 w-full max-w-xs opacity-75 text-center">
+          <motion.div {...activeRevealItem(0.52)} className="flex flex-col items-center gap-1 select-none mt-8 border-t border-white/10 pt-6 w-full max-w-xs opacity-75 text-center">
             <svg 
               width="24" 
               height="24" 
