@@ -747,7 +747,7 @@ const FluidDistortion: React.FC = () => {
   const ASSETS = {
     baseImage: '/base.png',
     revealImage: '/top.png',
-    iceImage: '/top.png' // Changed from /ice.png to /top.png per request
+    iceImage: '/ice.png'
   };
 
   useEffect(() => {

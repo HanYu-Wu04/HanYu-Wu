@@ -14,6 +14,8 @@ This project is not affiliated with Lando Norris, McLaren, or the official Lando
 - Fluid distortion trail that reveals and distorts `base.png` / `top.png`.
 - Interactive 3D ice/wireframe face mask that follows the portrait crop.
 - Snow/rain particle toggle with cursor wake interaction.
+- Hidden `iceman` keyboard easter egg that swaps the portrait reveal to `ice.png`.
+- Browser console branding that prints `HanYu Wu`.
 - Lando Norris-style pixel text hover/reveal effect.
 - Scroll-driven signature, manifesto, gallery, and contact transitions.
 - Responsive desktop and mobile layouts.
@@ -32,6 +34,7 @@ This project is not affiliated with Lando Norris, McLaren, or the official Lando
 ## Custom Project Files
 
 - `src/components/FluidDistortion.tsx`: Main portfolio experience. Owns scroll timing, hero portrait WebGL setup, manifesto, gallery, contact section, weather toggle, and responsive behavior.
+- `src/consoleBrand.ts`: Browser console signature that prints HanYu Wu branding on page load.
 - `src/shaders.ts`: Custom GLSL shaders for the fluid trail simulation and display pass.
 - `src/components/SnowfallCanvas.tsx`: Lightweight canvas snow/rain particle system with cursor-driven wake interaction and mobile performance caps.
 - `src/components/LandoText.tsx`: Custom Lando Norris-inspired text hover effect used for nav, resume text, and brand lettering.
@@ -111,6 +114,7 @@ Deploy the generated `dist/` folder as a static site. On Vercel, use:
 
 - `base.png`: Base portrait image.
 - `top.png`: Ice/reveal portrait image.
+- `ice.png`: Hidden easter egg portrait used after typing `iceman`.
 - `left.png` and `right.png`: Contact section artwork.
 - `HanYu_Wu_Resume.pdf`: Resume download target.
 - Project images such as `calpoly.jpg`, `sparkliai.png`, `hack4impact.png`, `campusirl.png`, and `grad.jpg`.
@@ -140,6 +144,8 @@ The current build may warn that some chunks are larger than 500 kB. That warning
 - 使用流体轨迹来揭示和扭曲 `base.png` / `top.png`。
 - 交互式 3D 冰霜/线框面部结构，会随着人像裁切比例保持对齐。
 - 雪/雨粒子切换，并支持鼠标轨迹推动粒子。
+- 隐藏的 `iceman` 键盘彩蛋，输入后会把人像 reveal 切换到 `ice.png`。
+- 浏览器 console 会打印 `HanYu Wu` 品牌字样。
 - 类 Lando Norris 风格的像素文字 hover/reveal 效果。
 - 滚动驱动的签名、宣言、项目画廊和联系区。
 - 桌面端和移动端响应式布局。
@@ -158,6 +164,7 @@ The current build may warn that some chunks are larger than 500 kB. That warning
 ## 自定义文件
 
 - `src/components/FluidDistortion.tsx`：主作品集页面，包含滚动时间轴、WebGL hero、人像、manifesto、gallery、contact、天气切换和响应式逻辑。
+- `src/consoleBrand.ts`：页面加载时在浏览器 console 打印 HanYu Wu 品牌字样。
 - `src/shaders.ts`：自定义 GLSL shader，用于流体轨迹模拟和最终画面显示。
 - `src/components/SnowfallCanvas.tsx`：轻量 canvas 雪/雨粒子系统，支持鼠标推动和移动端性能限制。
 - `src/components/LandoText.tsx`：类 Lando Norris 的文字 hover 动效。

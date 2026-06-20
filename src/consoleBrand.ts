@@ -53,7 +53,7 @@ declare global {
 
 export function printConsoleBrand() {
   console.log(
-    '%c%s%c%s%cBUILDING SINCE 2021',
+    '%c%s%c%s%cHanYu Wu — Building since 2021',
     hanYuStyle,
     hanYuArt,
     wuStyle,
