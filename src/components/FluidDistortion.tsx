@@ -726,6 +726,8 @@ const FluidDistortion: React.FC = () => {
   const [isIceManMode, setIsIceManMode] = useState(false);
   const iceManRef = useRef(false);
   const typedKeys = useRef('');
+  const freezeBurstTimeoutRef = useRef<number | undefined>(undefined);
+  const [freezeBurst, setFreezeBurst] = useState(false);
   const [weatherMode, setWeatherMode] = useState<ParticleWeatherMode>('snow');
 
   const [gallerySeen, setGallerySeen] = useState(false);
@@ -782,6 +784,14 @@ const FluidDistortion: React.FC = () => {
       if (typedKeys.current.includes('iceman')) {
         setIsIceManMode(true);
         iceManRef.current = true;
+        setFreezeBurst(true);
+        if (freezeBurstTimeoutRef.current) {
+          window.clearTimeout(freezeBurstTimeoutRef.current);
+        }
+        freezeBurstTimeoutRef.current = window.setTimeout(() => {
+          setFreezeBurst(false);
+          freezeBurstTimeoutRef.current = undefined;
+        }, 1800);
         typedKeys.current = ''; 
       }
     };
@@ -1083,6 +1093,10 @@ const FluidDistortion: React.FC = () => {
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('resize', updateRendererSize);
       window.removeEventListener('keydown', onKeyDown);
+      if (freezeBurstTimeoutRef.current) {
+        window.clearTimeout(freezeBurstTimeoutRef.current);
+        freezeBurstTimeoutRef.current = undefined;
+      }
       resizeObserver.disconnect();
       cancelAnimationFrame(animId);
       renderer.dispose();
@@ -1104,6 +1118,50 @@ const FluidDistortion: React.FC = () => {
         className="snow-field fixed inset-0 z-[1] pointer-events-none"
       />
       <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={528} opacity={0.9} mode={weatherMode} />
+
+      <AnimatePresence>
+        {freezeBurst && (
+          <motion.div
+            className="fixed inset-0 z-[140] pointer-events-none overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: EASE_OUT }}
+            aria-hidden="true"
+          >
+            <motion.div
+              className="absolute inset-0 bg-[#dff8ff]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.58, 0.16] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.72, ease: EASE_OUT }}
+            />
+            <motion.div
+              className="absolute inset-0 backdrop-blur-[2px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.55, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.25, ease: EASE_OUT }}
+            />
+            <div className="freeze-burst-scratches absolute inset-0" />
+            <motion.div
+              className="absolute inset-x-[-18%] top-1/2 h-[24vh] -translate-y-1/2 rotate-[-10deg] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.0)_8%,rgba(255,255,255,0.88)_38%,rgba(153,246,255,0.68)_50%,rgba(255,255,255,0.88)_62%,transparent_92%)] blur-sm"
+              initial={{ x: '-110%', opacity: 0 }}
+              animate={{ x: '110%', opacity: [0, 0.95, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.05, ease: EASE_IN_OUT }}
+            />
+            <motion.div
+              className="absolute inset-x-[-12%] top-[38%] h-[10vh] rotate-[7deg] bg-[linear-gradient(90deg,transparent,rgba(14,165,233,0.0)_12%,rgba(210,248,255,0.62)_45%,rgba(255,255,255,0.72)_54%,transparent_88%)] blur-[1px]"
+              initial={{ x: '95%', opacity: 0 }}
+              animate={{ x: '-95%', opacity: [0, 0.8, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.92, ease: EASE_IN_OUT, delay: 0.14 }}
+            />
+            <SnowfallCanvas className="absolute inset-0 z-10 pointer-events-none" density={620} opacity={0.85} mode="snow" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Contrast Mask Overlay */}
       <motion.div

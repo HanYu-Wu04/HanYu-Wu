@@ -121,6 +121,39 @@
     opacity: 0.24;
   }
 
+  .freeze-burst-scratches {
+    opacity: 0;
+    animation: freeze-burst-scratches 1.8s var(--ease-out-ui) forwards;
+    background:
+      linear-gradient(112deg, transparent 0 43%, rgba(255,255,255,0.72) 43.35%, transparent 44% 100%),
+      linear-gradient(24deg, transparent 0 58%, rgba(153,246,255,0.45) 58.2%, transparent 58.8% 100%),
+      linear-gradient(151deg, transparent 0 35%, rgba(255,255,255,0.42) 35.2%, transparent 36% 100%),
+      linear-gradient(78deg, transparent 0 68%, rgba(14,165,233,0.28) 68.15%, transparent 69% 100%),
+      radial-gradient(circle at 18% 36%, rgba(255,255,255,0.72) 0 1px, transparent 2px),
+      radial-gradient(circle at 82% 42%, rgba(255,255,255,0.62) 0 1px, transparent 2px),
+      radial-gradient(circle at 54% 18%, rgba(153,246,255,0.46) 0 2px, transparent 3px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 120px 120px, 180px 180px, 260px 260px;
+    filter: drop-shadow(0 0 12px rgba(153, 246, 255, 0.72));
+  }
+
+  @keyframes freeze-burst-scratches {
+    0% {
+      opacity: 0;
+      clip-path: inset(50% 50% 50% 50%);
+      transform: scale(1.04);
+    }
+    24% {
+      opacity: 0.9;
+      clip-path: inset(0 0 0 0);
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      clip-path: inset(0 0 0 0);
+      transform: scale(1.015);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .lando-link span {
       transition-duration: 0ms;
