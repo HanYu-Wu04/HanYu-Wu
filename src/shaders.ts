@@ -198,8 +198,7 @@ export const displayFragmentShader = `
       finalColor = mix(base, revealTex, revealAmount);
     }
 
-    finalColor.rgb = mix(bgColor, finalColor.rgb, finalColor.a);
-    finalColor.a = max(finalColor.a, 1.0);
+    finalColor.a = clamp(finalColor.a, 0.0, 1.0);
     
     float outsideSubject = uSubjectOnlyPortrait ? 0.0 : 1.0 - subjectMask;
     float softTrail = smoothstep(0.025, 0.55, mask);

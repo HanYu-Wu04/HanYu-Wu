@@ -665,7 +665,7 @@ const FluidDistortion: React.FC = () => {
   const galleryOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_START, GALLERY_REVEAL_END, FINAL_SCROLL_PROGRESS], [0, 1, 1]);
   const galleryX = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['86vw', GALLERY_FINAL_X]);
   const galleryY = useTransform(scrollYProgress, [GALLERY_REVEAL_START, FINAL_SCROLL_PROGRESS], ['100vh', isMobileViewport ? MOBILE_GALLERY_FINAL_Y : '-860vh']);
-  const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#0A0F1A', '#0A0F1A', '#cbd5e1', '#f4f3ed']);
+  const galleryBgColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#263845', '#263845', '#cbd5e1', '#f4f3ed']);
   const galleryLineOpacity = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], [0.08, 0.08, 0.12, 0.18]);
   const galleryTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#ffffff', '#ffffff', '#1e293b', '#0f172a']);
   const gallerySubTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#94a3b8', '#94a3b8', '#475569', '#334155']);
@@ -678,9 +678,9 @@ const FluidDistortion: React.FC = () => {
   const galleryCardHeaderMutedTextColor = useTransform(scrollYProgress, [GALLERY_REVEAL_END, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['rgba(255, 255, 255, 0.40)', 'rgba(255, 255, 255, 0.40)', 'rgba(32, 39, 29, 0.45)', 'rgba(32, 39, 29, 0.45)']);
 
   // Background Darkening & Effects - Clean dark transition at the end
-  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [0.95, 0.80, 0.88]);
+  const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [1.08, 0.86, 0.94]);
   const videoBlur = useTransform(scrollYProgress, [0.3, 0.6, 0.75, 0.82], ['0px', '4px', '8px', '12px']);
-  const contrastMaskOpacity = useTransform(scrollYProgress, [0.0, 0.15, 0.45, 0.6], [0.2, 0.55, 0.55, 0.0]);
+  const contrastMaskOpacity = useTransform(scrollYProgress, [0.0, 0.15, 0.45, 0.6], [0.06, 0.28, 0.42, 0.0]);
   const endOverlayOpacity = useTransform(scrollYProgress, [0.52, isMobileViewport ? 0.75 : 0.82, 0.90, FINAL_SCROLL_PROGRESS], [0, 0.78, 0.22, 0]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
   const nameColor = useTransform(scrollYProgress, [0.08, 0.38, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#000000', '#ffffff', '#ffffff', '#20271d', '#20271d']);
@@ -1061,7 +1061,7 @@ const FluidDistortion: React.FC = () => {
         }}
         className="snow-field fixed inset-0 z-[1] pointer-events-none"
       />
-      <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={264} opacity={0.9} mode={weatherMode} />
+      <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={528} opacity={0.9} mode={weatherMode} />
 
       {/* Contrast Mask Overlay */}
       <motion.div
@@ -1071,8 +1071,8 @@ const FluidDistortion: React.FC = () => {
 
       {/* End State Overlay */}
       <motion.div
-        className="fixed inset-0 z-[5] pointer-events-none bg-[#0F172A]"
-        style={{ opacity: endOverlayOpacity }}
+        className="fixed inset-0 z-[5] pointer-events-none"
+        style={{ opacity: endOverlayOpacity, backgroundColor: '#2f4352' }}
       />
 
 
@@ -1313,7 +1313,7 @@ const FluidDistortion: React.FC = () => {
               </motion.div>
               <SnowfallCanvas
                 className="absolute inset-0 z-10 pointer-events-none"
-                density={176}
+                density={352}
                 opacity={0.84}
                 mode={weatherMode}
               />
@@ -1336,6 +1336,14 @@ const FluidDistortion: React.FC = () => {
                 />
               </div>
             </motion.div>
+            {weatherMode === 'rain' && (
+              <SnowfallCanvas
+                className="absolute inset-0 z-40 pointer-events-none"
+                density={360}
+                opacity={0.62}
+                mode="rain"
+              />
+            )}
           </motion.div>
 
           {/* Manifesto Text - Placed below the signature on the same scroll plane */}
@@ -1345,7 +1353,7 @@ const FluidDistortion: React.FC = () => {
             }}
             className="absolute top-full left-0 right-0 h-screen z-[60] flex items-center justify-center pointer-events-none p-6 md:p-10"
           >
-            <div className="max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
+            <div className="relative z-20 max-w-7xl text-center pointer-events-auto group flex flex-col gap-4 md:gap-6 items-center">
               {/* Programmer Laurel Emblem & Text above the quote */}
               <div className="flex flex-col items-center justify-center gap-2 select-none mb-4 md:mb-6">
                 <motion.svg 
@@ -1390,6 +1398,14 @@ const FluidDistortion: React.FC = () => {
                 </RevealLine>
               </h2>
             </div>
+            {weatherMode === 'rain' && (
+              <SnowfallCanvas
+                className="absolute inset-0 z-30 pointer-events-none"
+                density={420}
+                opacity={0.58}
+                mode="rain"
+              />
+            )}
           </motion.div>
 
           {/* Scroll Editorial Gallery */}
@@ -1533,7 +1549,7 @@ const FluidDistortion: React.FC = () => {
                         </span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
-                        Explore source code, personal projects, repositories, and developer contributions.
+                        Check out what I’m building, from side projects to open-source code.
                       </p>
                       <div 
                         className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
@@ -1567,7 +1583,7 @@ const FluidDistortion: React.FC = () => {
                         </span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
-                        Connect for professional networking, career updates, and industry experience.
+                        Let’s connect! See my professional background and industry experience.
                       </p>
                       <div 
                         className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"
@@ -1599,7 +1615,7 @@ const FluidDistortion: React.FC = () => {
                         </span>
                       </div>
                       <p className="font-sans text-sm md:text-base text-[#3a4235] max-w-[280px] leading-relaxed mb-6 font-medium transition-colors duration-300 group-hover:text-black/80">
-                        Reach out directly for freelance inquiries, collaborations, or general questions.
+                        Have a project in mind? Drop me a line for inquiries or collaborations.
                       </p>
                       <div 
                         className="w-12 h-12 bg-[#0ea5e9] group-hover:bg-[#0091d2] text-white rounded-lg flex items-center justify-center transition-all duration-300 shadow-md group-hover:shadow-lg group-hover:scale-105"

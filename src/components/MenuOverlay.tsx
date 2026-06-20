@@ -111,7 +111,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
         exit="exit"
         className="snow-field absolute inset-0 z-[1] pointer-events-none select-none opacity-35"
       />
-      <SnowfallCanvas className="absolute inset-0 z-[2] pointer-events-none" density={236} opacity={0.5} mode={weatherMode} />
+      <SnowfallCanvas className="absolute inset-0 z-[2] pointer-events-none" density={472} opacity={0.5} mode={weatherMode} />
 
       {/* Top Header UI - Match position, styles, and scale of FluidDistortion header */}
       <motion.div
