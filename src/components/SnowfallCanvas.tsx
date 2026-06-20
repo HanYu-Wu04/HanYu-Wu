@@ -24,6 +24,39 @@ type SnowParticle = {
   length: number;
 };
 
+type SnowSprite = {
+  canvas: HTMLCanvasElement;
+  size: number;
+};
+
+function createSnowSprite(glow: number): SnowSprite {
+  const size = Math.ceil(glow * 2 + 4);
+  const sprite = document.createElement('canvas');
+  sprite.width = size;
+  sprite.height = size;
+  const spriteCtx = sprite.getContext('2d');
+
+  if (spriteCtx) {
+    const center = size / 2;
+    const gradient = spriteCtx.createRadialGradient(center, center, 0, center, center, glow);
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.45, 'rgba(210,238,255,0.28)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    spriteCtx.fillStyle = gradient;
+    spriteCtx.beginPath();
+    spriteCtx.arc(center, center, glow, 0, Math.PI * 2);
+    spriteCtx.fill();
+  }
+
+  return { canvas: sprite, size };
+}
+
+function getSnowSprite(sprites: SnowSprite[], glow: number) {
+  return sprites.reduce((closest, sprite) => (
+    Math.abs(sprite.size - glow * 2) < Math.abs(closest.size - glow * 2) ? sprite : closest
+  ), sprites[0]);
+}
+
 function createParticle(
   width: number,
   height: number,
@@ -65,10 +98,18 @@ export default function SnowfallCanvas({
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isMobile = window.innerWidth < 768;
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
     const modeDensity = mode === 'rain' ? density * 0.78 : density;
-    const particleCount = Math.max(36, Math.round(modeDensity * (isMobile ? 0.72 : 1)));
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const mobileScale = mode === 'snow' ? 0.56 : 0.72;
+    const rawParticleCount = Math.round(modeDensity * (isMobile ? mobileScale : 1));
+    const mobileCap = mode === 'snow' ? 280 : 420;
+    const desktopCap = mode === 'snow' ? 620 : 520;
+    const particleCount = Math.max(36, Math.min(rawParticleCount, isMobile ? mobileCap : desktopCap));
+    const dpr = Math.min(window.devicePixelRatio || 1, isCoarsePointer ? 1 : 1.5);
     const particles: SnowParticle[] = [];
+    const snowSprites = mode === 'snow'
+      ? [2.4, 3.4, 4.8, 6.4, 8.2, 10.2].map(createSnowSprite)
+      : [];
     const cursor = {
       x: -9999,
       y: -9999,
@@ -195,22 +236,16 @@ export default function SnowfallCanvas({
         }
 
         const glow = particle.radius * (particle.cluster ? 2.35 : 3.0);
-        const gradient = ctx.createRadialGradient(
-          particle.x,
-          particle.y,
-          0,
-          particle.x,
-          particle.y,
-          glow
+        const sprite = getSnowSprite(snowSprites, glow);
+        ctx.globalAlpha = particle.alpha * opacity;
+        ctx.drawImage(
+          sprite.canvas,
+          particle.x - sprite.size / 2,
+          particle.y - sprite.size / 2,
+          sprite.size,
+          sprite.size
         );
-        gradient.addColorStop(0, `rgba(255,255,255,${particle.alpha * opacity})`);
-        gradient.addColorStop(0.45, `rgba(210,238,255,${particle.alpha * 0.28 * opacity})`);
-        gradient.addColorStop(1, 'rgba(255,255,255,0)');
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, glow, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.globalAlpha = 1;
       }
 
       ctx.globalCompositeOperation = 'source-over';
