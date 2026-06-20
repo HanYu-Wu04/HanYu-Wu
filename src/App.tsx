@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import FluidDistortion from './components/FluidDistortion';
+import FluidCursor from './components/FluidCursor';
 import LoadingOverlay from './components/LoadingOverlay';
 
 export default function App() {
@@ -21,8 +22,8 @@ export default function App() {
   return (
     <main className="min-h-screen bg-black">
       <FluidDistortion key={isMobile ? 'mobile' : 'desktop'} />
+      <FluidCursor />
       <LoadingOverlay />
     </main>
   );
 }
-

@@ -812,7 +812,7 @@ const FluidDistortion: React.FC = () => {
         uAutoMouse: { value: autoMouse },
         uPrevAutoMouse: { value: prevAutoMouse },
         uResolution: { value: new THREE.Vector2(size, size) },
-        uDecay: { value: 0.985 },
+        uDecay: { value: 0.976 },
         uIsMoving: { value: false },
         uUseAutoMouse: { value: true },
       },
@@ -958,20 +958,36 @@ const FluidDistortion: React.FC = () => {
         isMoving = false;
       }
 
-      // Update autonomous movement (4-stroke raster pattern from top to bottom)
+      // Update autonomous movement as alternating horizontal scanlines across the viewport.
       prevAutoMouse.copy(autoMouse);
       
-      const sweepDuration = 6.0;
-      const tNorm = (time % sweepDuration) / sweepDuration;
+      const sweepDuration = 1.25;
+      const scanlineCount = 5;
+      const idleRoundPause = 1.5;
+      const roundDuration = sweepDuration * scanlineCount + idleRoundPause;
+      const roundTime = time % roundDuration;
+      const roundIndex = Math.floor(time / roundDuration);
+      const isIdleRoundPaused = roundTime >= sweepDuration * scanlineCount;
+      const activeRoundTime = Math.min(roundTime, sweepDuration * scanlineCount - 0.001);
+      const sweepIndex = Math.floor(activeRoundTime / sweepDuration);
+      const tNorm = (activeRoundTime % sweepDuration) / sweepDuration;
+      const rowOrder = roundIndex % 2 === 0
+        ? [0.82, 0.64, 0.48, 0.32, 0.16]
+        : [0.16, 0.32, 0.48, 0.64, 0.82];
+      const rowY = rowOrder[sweepIndex % scanlineCount];
+      const globalSweepIndex = roundIndex * scanlineCount + sweepIndex;
+      const leftToRight = globalSweepIndex % 2 === 0;
       
-      const nextY = 0.85 - 0.70 * tNorm;
-      const angle = tNorm * Math.PI * 4.0 - Math.PI / 2.0;
-      const nextX = 0.5 + 0.42 * Math.sin(angle);
+      const nextX = leftToRight ? -0.08 + 1.16 * tNorm : 1.08 - 1.16 * tNorm;
+      const nextY = rowY + Math.sin(tNorm * Math.PI * 2.0 + sweepIndex * 0.7) * 0.035;
       
       autoMouse.set(nextX, nextY);
-      
-      // Prevent drawing a line when the loop resets from bottom to top
-      if (Math.abs(autoMouse.y - prevAutoMouse.y) > 0.4) {
+      if (isIdleRoundPaused) {
+        prevAutoMouse.copy(autoMouse);
+      }
+
+      // Prevent drawing a connector when jumping to the next scanline.
+      if (Math.abs(autoMouse.y - prevAutoMouse.y) > 0.08 || Math.abs(autoMouse.x - prevAutoMouse.x) > 0.24) {
         prevAutoMouse.copy(autoMouse);
       }
 

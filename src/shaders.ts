@@ -30,31 +30,39 @@ export const fluidFragmentShader = `
   void main() {
     vec4 prev = texture2D(uPrevTrails, vUv);
     
-    // User cursor brush - smooth transition
+    // User cursor brush - soft liquid wake with a denser center.
     float dist = line(vUv, uPrevMouse, uMouse);
-    float brush = exp(-dist * 33.0);
+    float brushCore = exp(-dist * 42.0);
+    float brushWake = exp(-dist * 16.0);
+    float brush = brushCore * 0.5 + brushWake * 0.2;
     if (!uIsMoving) brush = 0.0;
     
-    // Auto idle cursor brush - smooth transition
+    // Auto idle cursor brush - lighter than direct pointer input.
     float autoDist = line(vUv, uPrevAutoMouse, uAutoMouse);
-    float autoBrush = exp(-autoDist * 33.0);
+    float autoCore = exp(-autoDist * 30.0);
+    float autoWake = exp(-autoDist * 13.5);
+    float autoBrush = autoCore * 0.32 + autoWake * 0.16;
     if (!uUseAutoMouse) autoBrush = 0.0;
     
     // Combine brushes
     float finalBrush = max(brush, autoBrush);
     
     // Add current brush to previous state
-    vec3 color = prev.rgb * (uDecay - 0.005) + vec3(finalBrush * 0.85);
+    vec3 color = prev.rgb * uDecay + vec3(finalBrush * 0.42);
     
-    // Simple diffusion - sample neighbors lightly
+    // Diffusion softens the mask so the trail behaves like moving liquid.
     vec2 off = 1.0 / uResolution;
     vec4 n = texture2D(uPrevTrails, vUv + vec2(0.0, off.y));
     vec4 s = texture2D(uPrevTrails, vUv - vec2(0.0, off.y));
     vec4 e = texture2D(uPrevTrails, vUv + vec2(off.x, 0.0));
     vec4 w = texture2D(uPrevTrails, vUv - vec2(off.x, 0.0));
+    vec4 ne = texture2D(uPrevTrails, vUv + off);
+    vec4 nw = texture2D(uPrevTrails, vUv + vec2(-off.x, off.y));
+    vec4 se = texture2D(uPrevTrails, vUv + vec2(off.x, -off.y));
+    vec4 sw = texture2D(uPrevTrails, vUv - off);
     
-    // Blend a bit of neighbors to diffuse
-    color = mix(color, (n.rgb + s.rgb + e.rgb + w.rgb) * 0.25, 0.015);
+    vec3 diffuse = (n.rgb + s.rgb + e.rgb + w.rgb) * 0.18 + (ne.rgb + nw.rgb + se.rgb + sw.rgb) * 0.07;
+    color = mix(color, diffuse, 0.035);
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -236,16 +244,16 @@ export const displayFragmentShader = `
     finalColor.a = clamp(finalColor.a, 0.0, 1.0);
     
     float outsideSubject = uSubjectOnlyPortrait ? 0.0 : 1.0 - subjectMask;
-    float softTrail = smoothstep(0.025, 0.55, mask);
-    float denseTrail = smoothstep(0.28, 0.9, mask);
-    float rim = smoothstep(0.04, 0.22, mask) * (1.0 - smoothstep(0.32, 0.72, mask));
-    float ridge = clamp(length(vec2(mx, my)) * 5.0, 0.0, 1.0);
-    float cursorEffect = (softTrail * 0.16 + denseTrail * 0.14 + rim * ridge * 0.28) * outsideSubject;
-    vec3 iceWash = vec3(0.80, 0.94, 1.0);
-    vec3 iceEdge = vec3(0.18, 0.68, 0.95);
-    vec3 frostGlow = mix(iceWash, iceEdge, rim * ridge);
-    finalColor.rgb = mix(finalColor.rgb, frostGlow, cursorEffect);
-    finalColor.a = max(finalColor.a, cursorEffect);
+    float softTrail = smoothstep(0.04, 0.42, mask) * (1.0 - smoothstep(0.58, 0.92, mask));
+    float rim = smoothstep(0.05, 0.18, mask) * (1.0 - smoothstep(0.24, 0.54, mask));
+    float ridge = clamp(length(vec2(mx, my)) * 4.2, 0.0, 1.0);
+    float cursorBody = softTrail * 0.055 * outsideSubject;
+    float cursorEdge = (rim * 0.18 + rim * ridge * 0.24) * outsideSubject;
+    vec3 edgeInk = vec3(0.02, 0.30, 0.46);
+    vec3 frostGlow = vec3(0.42, 0.88, 1.0);
+    finalColor.rgb = mix(finalColor.rgb, edgeInk, cursorEdge);
+    finalColor.rgb = mix(finalColor.rgb, frostGlow, cursorBody + cursorEdge * 0.35);
+    finalColor.a = max(finalColor.a, cursorBody * 0.62 + cursorEdge * 0.86);
 
     float containerEdgeFade = smoothstep(0.0, 0.15, vUv.x) * smoothstep(1.0, 0.85, vUv.x);
     finalColor.a *= containerEdgeFade;

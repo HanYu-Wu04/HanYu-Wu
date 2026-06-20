@@ -11,10 +11,13 @@ type CursorParticle = {
   maxLife: number;
   spin: number;
   alpha: number;
+  stretch: number;
+  angle: number;
 };
 
 const PARTICLE_COLOR = '14, 165, 233';
 const HIGHLIGHT_COLOR = '220, 248, 255';
+const MAX_PARTICLES = 96;
 
 export default function FluidCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -32,8 +35,12 @@ export default function FluidCursor() {
     const cursor = {
       x: window.innerWidth / 2,
       y: window.innerHeight / 2,
+      targetX: window.innerWidth / 2,
+      targetY: window.innerHeight / 2,
       prevX: window.innerWidth / 2,
       prevY: window.innerHeight / 2,
+      vx: 0,
+      vy: 0,
       active: false,
     };
 
@@ -54,52 +61,55 @@ export default function FluidCursor() {
     };
 
     const addParticle = (x: number, y: number, vx: number, vy: number, speed: number, spread = 1) => {
-      const baseRadius = 14 + Math.min(26, speed * 0.16) + Math.random() * 10;
+      const baseRadius = 6 + Math.min(15, speed * 0.075) + Math.random() * 6;
       particles.push({
         x,
         y,
-        vx: vx * 0.012 + (Math.random() - 0.5) * 0.9 * spread,
-        vy: vy * 0.012 + (Math.random() - 0.5) * 0.9 * spread,
+        vx: vx * 0.018 + (Math.random() - 0.5) * 1.15 * spread,
+        vy: vy * 0.018 + (Math.random() - 0.5) * 1.15 * spread,
         baseRadius,
         radius: baseRadius,
         life: 0,
-        maxLife: 900 + Math.random() * 520,
-        spin: (Math.random() - 0.5) * 0.018,
-        alpha: 0.42 + Math.random() * 0.18,
+        maxLife: 720 + Math.random() * 460,
+        spin: (Math.random() - 0.5) * 0.026,
+        alpha: 0.14 + Math.random() * 0.1,
+        stretch: 1 + Math.min(1.25, speed / 115),
+        angle: Math.atan2(vy, vx),
       });
 
-      if (particles.length > 118) {
-        particles.splice(0, particles.length - 118);
+      if (particles.length > MAX_PARTICLES) {
+        particles.splice(0, particles.length - MAX_PARTICLES);
       }
     };
 
     const onPointerMove = (event: PointerEvent) => {
       const nextX = event.clientX;
       const nextY = event.clientY;
-      const vx = cursor.active ? nextX - cursor.x : 0;
-      const vy = cursor.active ? nextY - cursor.y : 0;
+      const vx = cursor.active ? nextX - cursor.targetX : 0;
+      const vy = cursor.active ? nextY - cursor.targetY : 0;
       const speed = Math.hypot(vx, vy);
 
-      cursor.prevX = cursor.x;
-      cursor.prevY = cursor.y;
-      cursor.x = nextX;
-      cursor.y = nextY;
+      cursor.targetX = nextX;
+      cursor.targetY = nextY;
+      cursor.vx = vx;
+      cursor.vy = vy;
       cursor.active = true;
 
-      const steps = Math.max(1, Math.min(4, Math.ceil(speed / 28)));
+      const steps = Math.max(1, Math.min(8, Math.ceil(speed / 18)));
       for (let i = 0; i < steps; i += 1) {
-        const t = steps === 1 ? 1 : i / (steps - 1);
-        const x = cursor.prevX + vx * t;
-        const y = cursor.prevY + vy * t;
-        addParticle(x, y, vx, vy, speed);
+        const t = (i + 1) / steps;
+        const x = cursor.x + (nextX - cursor.x) * t;
+        const y = cursor.y + (nextY - cursor.y) * t;
+        const wobble = Math.sin((performance.now() + i * 47) * 0.018) * Math.min(12, speed * 0.08);
+        const dist = Math.max(1, speed);
+        const normalX = -vy / dist;
+        const normalY = vx / dist;
+        addParticle(x + normalX * wobble, y + normalY * wobble, vx, vy, speed);
 
-        if (speed > 10) {
-          const dist = Math.max(1, speed);
-          const normalX = -vy / dist;
-          const normalY = vx / dist;
-          const offset = 10 + Math.min(22, speed * 0.16);
-          addParticle(x + normalX * offset, y + normalY * offset, vx * 0.45, vy * 0.45, speed, 1.25);
-          addParticle(x - normalX * offset, y - normalY * offset, vx * 0.45, vy * 0.45, speed, 1.25);
+        if (speed > 16 && i % 2 === 0) {
+          const offset = 7 + Math.min(18, speed * 0.1);
+          addParticle(x + normalX * offset, y + normalY * offset, vx * 0.35, vy * 0.35, speed, 1.4);
+          addParticle(x - normalX * offset, y - normalY * offset, vx * 0.35, vy * 0.35, speed, 1.4);
         }
       }
     };
@@ -109,12 +119,17 @@ export default function FluidCursor() {
     };
 
     const drawParticle = (particle: CursorParticle, opacity: number) => {
+      ctx.save();
+      ctx.translate(particle.x, particle.y);
+      ctx.rotate(particle.angle);
+      ctx.scale(particle.stretch, 1 / Math.sqrt(particle.stretch));
+
       const gradient = ctx.createRadialGradient(
-        particle.x,
-        particle.y,
         0,
-        particle.x,
-        particle.y,
+        0,
+        0,
+        0,
+        0,
         particle.radius
       );
       gradient.addColorStop(0, `rgba(${HIGHLIGHT_COLOR}, ${0.28 * opacity})`);
@@ -124,8 +139,38 @@ export default function FluidCursor() {
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, particle.radius, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
+    };
+
+    const drawConnections = () => {
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      for (let i = 0; i < particles.length; i += 1) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j += 1) {
+          const b = particles[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy);
+          const reach = (a.radius + b.radius) * 1.25;
+
+          if (dist > reach || dist < 1) continue;
+
+          const tension = 1 - dist / reach;
+          const alpha = tension * tension * 0.07 * Math.min(a.alpha, b.alpha);
+          const width = Math.max(1, Math.min(7, tension * Math.min(a.radius, b.radius) * 0.62));
+
+          ctx.strokeStyle = `rgba(${PARTICLE_COLOR}, ${alpha})`;
+          ctx.lineWidth = width;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo((a.x + b.x) / 2 + dy * 0.03, (a.y + b.y) / 2 - dx * 0.03, b.x, b.y);
+          ctx.stroke();
+        }
+      }
     };
 
     const draw = (now: number) => {
@@ -133,8 +178,13 @@ export default function FluidCursor() {
       const delta = deltaMs / 16.67;
       lastTime = now;
 
+      cursor.prevX = cursor.x;
+      cursor.prevY = cursor.y;
+      cursor.x += (cursor.targetX - cursor.x) * Math.min(1, 0.22 * delta);
+      cursor.y += (cursor.targetY - cursor.y) * Math.min(1, 0.22 * delta);
+
       ctx.globalCompositeOperation = 'destination-out';
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.075)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
       ctx.fillRect(0, 0, width, height);
 
       ctx.globalCompositeOperation = 'lighter';
@@ -142,33 +192,46 @@ export default function FluidCursor() {
       for (let i = particles.length - 1; i >= 0; i -= 1) {
         const particle = particles[i];
         particle.life += deltaMs;
+        const progress = particle.life / particle.maxLife;
+        const pull = Math.max(0, 1 - progress) * 0.016;
+        particle.vx += (cursor.x - particle.x) * pull * delta;
+        particle.vy += (cursor.y - particle.y) * pull * delta;
         particle.vx += Math.sin((particle.life + particle.x) * 0.006) * particle.spin * delta;
         particle.vy += Math.cos((particle.life + particle.y) * 0.006) * particle.spin * delta;
-        particle.vx *= Math.pow(0.982, delta);
-        particle.vy *= Math.pow(0.982, delta);
+        particle.vx *= Math.pow(0.968, delta);
+        particle.vy *= Math.pow(0.968, delta);
         particle.x += particle.vx * delta;
         particle.y += particle.vy * delta;
+        particle.angle += (Math.atan2(particle.vy, particle.vx) - particle.angle) * 0.08 * delta;
+        particle.stretch += (1 - particle.stretch) * 0.026 * delta;
 
-        const progress = particle.life / particle.maxLife;
         if (progress >= 1) {
           particles.splice(i, 1);
           continue;
         }
 
+        particle.radius = particle.baseRadius * (1 + progress * 1.55);
+      }
+
+      drawConnections();
+
+      for (const particle of particles) {
+        const progress = particle.life / particle.maxLife;
         const opacity = Math.pow(1 - progress, 1.2) * particle.alpha;
-        particle.radius = particle.baseRadius * (1 + progress * 2.65);
         drawParticle(particle, opacity);
       }
 
       if (cursor.active) {
-        const pulse = 0.72 + Math.sin(now * 0.009) * 0.12;
-        const core = ctx.createRadialGradient(cursor.x, cursor.y, 0, cursor.x, cursor.y, 32);
-        core.addColorStop(0, `rgba(${HIGHLIGHT_COLOR}, ${0.36 * pulse})`);
-        core.addColorStop(0.42, `rgba(${PARTICLE_COLOR}, ${0.24 * pulse})`);
+        const speed = Math.hypot(cursor.targetX - cursor.prevX, cursor.targetY - cursor.prevY);
+        const pulse = 0.76 + Math.sin(now * 0.009) * 0.1;
+        const coreRadius = 16 + Math.min(16, speed * 0.085);
+        const core = ctx.createRadialGradient(cursor.x, cursor.y, 0, cursor.x, cursor.y, coreRadius);
+        core.addColorStop(0, `rgba(${HIGHLIGHT_COLOR}, ${0.16 * pulse})`);
+        core.addColorStop(0.45, `rgba(${PARTICLE_COLOR}, ${0.11 * pulse})`);
         core.addColorStop(1, `rgba(${PARTICLE_COLOR}, 0)`);
         ctx.fillStyle = core;
         ctx.beginPath();
-        ctx.arc(cursor.x, cursor.y, 32, 0, Math.PI * 2);
+        ctx.arc(cursor.x, cursor.y, coreRadius, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -193,7 +256,7 @@ export default function FluidCursor() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 z-[115] pointer-events-none mix-blend-screen blur-[1px]"
+      className="fixed inset-0 z-[115] h-full w-full pointer-events-none mix-blend-screen blur-[1px]"
       aria-hidden="true"
     />
   );
