@@ -650,8 +650,8 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
   const { scrollYProgress } = useScroll();
   
   // Transform values for the shrinking box
-  const boxWidth = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vw', isMobileViewport ? '44vw' : '32vw']);
-  const boxHeight = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vh', isMobileViewport ? '36vh' : '45vh']);
+  const boxWidth = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vw', isMobileViewport ? '68vw' : '32vw']);
+  const boxHeight = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vh', isMobileViewport ? '78.3vw' : '45vh']);
   const boxY = useTransform(scrollYProgress, [0.35, 0.55], ['0%', '-20%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.25], [0, 0]);
   const rectangleEffectOpacity = useTransform(scrollYProgress, [0.08, 0.14], [1, 0]);
@@ -1452,7 +1452,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
             {/* Dynamic Background Marquee - Now moves with the scene */}
             <motion.div 
               style={{ opacity: marqueeOpacity }}
-              className="absolute inset-0 z-5 flex flex-col justify-center overflow-hidden pointer-events-none select-none"
+              className="absolute inset-0 z-5 hidden flex-col justify-center overflow-hidden pointer-events-none select-none lg:flex"
             >
                 <motion.div 
                   animate={{ x: [0, -2000] }}
@@ -1476,7 +1476,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                 width: boxWidth,
                 height: boxHeight,
               }}
-              className={`relative flex items-center justify-center z-20 ${isMobileViewport ? 'overflow-visible shadow-none' : 'overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]'}`}
+              className={`relative flex items-center justify-center z-20 ${isMobileViewport ? 'overflow-hidden shadow-none' : 'overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]'}`}
             >
               <motion.div 
                 ref={containerRef} 
@@ -1500,6 +1500,26 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                 className="absolute inset-0 z-20 pointer-events-none bg-[#06111d]"
                 style={{ opacity: rectangleDimOpacity }}
               />
+            </motion.div>
+
+            <motion.div
+              style={{ opacity: marqueeOpacity }}
+              className="absolute left-1/2 top-[calc(50%+50vw)] z-10 flex w-full -translate-x-1/2 flex-col items-center overflow-hidden pointer-events-none select-none lg:hidden"
+            >
+              <motion.div
+                animate={{ x: [0, -1100] }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                className="whitespace-nowrap font-press-start text-[8.5vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] [word-spacing:-4vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
+              >
+                FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
+              </motion.div>
+              <motion.div
+                animate={{ x: [-1100, 0] }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                className="mt-3 whitespace-nowrap font-press-start text-[8.5vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-4vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
+              >
+                FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
+              </motion.div>
             </motion.div>
 
             {/* Signature Overlay - Nested inside the Landing Scene to move and scale together */}
