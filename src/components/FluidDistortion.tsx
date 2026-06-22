@@ -1428,7 +1428,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                   className="text-[12px] font-black uppercase tracking-widest mt-1 text-[#ffffff]"
                   style={{ fontFamily: "'Press Start 2P', monospace, sans-serif" }}
                 >
-                  <LandoText text="HanYu Wu" className="lando-link-black" />
+                  <LandoText text="Who Am I" className="lando-link-black" />
                 </div>
               ) : (
                 <div className="text-[8px] font-black uppercase flex whitespace-nowrap">
@@ -1457,14 +1457,14 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                 <motion.div 
                   animate={{ x: [0, -2000] }}
                   transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] mb-1 [word-spacing:-2.5vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
+                  className="whitespace-nowrap font-press-start text-[4.4vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] mb-1 [word-spacing:-2vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
                 >
                   FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
                 </motion.div>
                 <motion.div 
                   animate={{ x: [-2000, 0] }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-2.5vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
+                  className="whitespace-nowrap font-press-start text-[4.4vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-2vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
                 >
                   FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
                 </motion.div>
@@ -1475,6 +1475,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
               style={{ 
                 width: boxWidth,
                 height: boxHeight,
+                y: isMobileViewport ? '-6vh' : 0,
               }}
               className={`relative flex items-center justify-center z-20 ${isMobileViewport ? 'overflow-hidden shadow-none' : 'overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]'}`}
             >
@@ -1504,19 +1505,19 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
 
             <motion.div
               style={{ opacity: marqueeOpacity }}
-              className="absolute left-1/2 top-[calc(50%+50vw)] z-10 flex w-full -translate-x-1/2 flex-col items-center overflow-hidden pointer-events-none select-none lg:hidden"
+              className="absolute left-1/2 top-[calc(50%+44vw)] z-10 flex w-full -translate-x-1/2 flex-col items-center overflow-hidden pointer-events-none select-none lg:hidden"
             >
               <motion.div
                 animate={{ x: [0, -1100] }}
                 transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                className="whitespace-nowrap font-press-start text-[8.5vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] [word-spacing:-4vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
+                className="whitespace-nowrap font-press-start text-[7.2vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] [word-spacing:-3.2vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
               >
                 FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
               </motion.div>
               <motion.div
                 animate={{ x: [-1100, 0] }}
                 transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                className="mt-3 whitespace-nowrap font-press-start text-[8.5vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-4vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
+                className="mt-3 whitespace-nowrap font-press-start text-[7.2vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-3.2vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
               >
                 FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
               </motion.div>
@@ -1527,15 +1528,17 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
               style={{
                 opacity: signatureOpacity,
                 scale: signatureScale,
+                y: isMobileViewport ? '-6vh' : 0,
               }}
               className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center px-6"
             >
-              <div className={isMobileViewport ? "h-[58vh] w-[96vw]" : "h-[140vh] w-[min(192vw,224vh)]"}>
+              <div className={isMobileViewport ? "h-[72vw] w-[112vw]" : "h-[140vh] w-[min(192vw,224vh)]"}>
                 <Stroke
                   className="w-full h-full drop-shadow-[0_0_44px_rgba(14,165,233,0.65)] overflow-visible"
                   color="#0ea5e9"
                   pathLength={signaturePathLength}
-                  strokeWidth={5}
+                  strokeWidth={isMobileViewport ? 7 : 5}
+                  viewBox={isMobileViewport ? "210 82 385 260" : undefined}
                 />
               </div>
             </motion.div>

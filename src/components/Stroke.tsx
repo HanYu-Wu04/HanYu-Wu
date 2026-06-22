@@ -9,6 +9,7 @@ interface SvgAnimatedProps {
   pathLength?: MotionValue<number> | number;
   opacity?: MotionValue<number> | number;
   strokeWidth?: number;
+  viewBox?: string;
 }
 
 export default function Stroke({
@@ -17,10 +18,11 @@ export default function Stroke({
   pathLength = 1,
   opacity = 1,
   strokeWidth = 3,
+  viewBox = '0 0 800 400',
 }: SvgAnimatedProps) {
   return (
     <motion.svg
-      viewBox="0 0 800 400"
+      viewBox={viewBox}
       className={className ?? 'w-full h-auto'}
       preserveAspectRatio="xMidYMid meet"
     >
