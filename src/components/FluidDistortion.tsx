@@ -1006,7 +1006,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       
       const sweepDuration = 1.25;
       const scanlineCount = 5;
-      const idleRoundPause = 1.5;
+      const idleRoundPause = 3.0;
       const roundDuration = sweepDuration * scanlineCount + idleRoundPause;
       const roundTime = time % roundDuration;
       const roundIndex = Math.floor(time / roundDuration);
@@ -1074,8 +1074,11 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       displayMaterial.uniforms.uTime.value = time;
       displayMaterial.uniforms.uBgBrightness.value = bgBrightness.get();
       displayMaterial.uniforms.uBgBlurMix.value = parseFloat(videoBlur.get());
-      const targetParallaxX = (mouse.x - 0.5) * 0.9;
-      const targetParallaxY = (mouse.y - 0.5) * 0.9;
+      const depthParallaxStrength = currentScroll < 0.06
+        ? 1
+        : Math.max(0, 1 - (currentScroll - 0.06) / 0.02);
+      const targetParallaxX = (mouse.x - 0.5) * 0.9 * depthParallaxStrength;
+      const targetParallaxY = (mouse.y - 0.5) * 0.9 * depthParallaxStrength;
       parallax.x += (targetParallaxX - parallax.x) * 0.045;
       parallax.y += (targetParallaxY - parallax.y) * 0.045;
       displayMaterial.uniforms.uParallax.value.copy(parallax);
@@ -1166,7 +1169,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
         }}
         className="snow-field fixed inset-0 z-[1] pointer-events-none"
       />
-      <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={528} opacity={0.9} mode={weatherMode} />
+      <SnowfallCanvas className="fixed inset-0 z-[2] pointer-events-none" density={340} opacity={0.78} mode={weatherMode} tone={weatherMode === 'snow' ? 'contrast' : 'light'} />
 
       <AnimatePresence>
         {freezeBurst && (
@@ -1207,7 +1210,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.92, ease: EASE_IN_OUT, delay: 0.14 }}
             />
-            <SnowfallCanvas className="absolute inset-0 z-10 pointer-events-none" density={620} opacity={0.85} mode="snow" />
+            <SnowfallCanvas className="absolute inset-0 z-10 pointer-events-none" density={360} opacity={0.78} mode="snow" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -1463,9 +1466,10 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
               </motion.div>
               <SnowfallCanvas
                 className="absolute inset-0 z-10 pointer-events-none"
-                density={352}
-                opacity={0.84}
+                density={190}
+                opacity={0.72}
                 mode={weatherMode}
+                tone={weatherMode === 'snow' ? 'contrast' : 'light'}
               />
             </motion.div>
 
@@ -1489,8 +1493,8 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
             {weatherMode === 'rain' && (
               <SnowfallCanvas
                 className="absolute inset-0 z-40 pointer-events-none"
-                density={360}
-                opacity={0.62}
+                density={220}
+                opacity={0.54}
                 mode="rain"
               />
             )}
@@ -1552,8 +1556,8 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
             {weatherMode === 'rain' && (
               <SnowfallCanvas
                 className="absolute inset-0 z-30 pointer-events-none"
-                density={420}
-                opacity={0.58}
+                density={240}
+                opacity={0.5}
                 mode="rain"
               />
             )}

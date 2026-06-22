@@ -141,7 +141,7 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
         exit="exit"
         className="snow-field absolute inset-0 z-[1] pointer-events-none select-none opacity-35"
       />
-      <SnowfallCanvas className="absolute inset-0 z-[2] pointer-events-none" density={472} opacity={0.5} mode={weatherMode} />
+      <SnowfallCanvas className="absolute inset-0 z-[2] pointer-events-none" density={280} opacity={0.46} mode={weatherMode} />
 
       {/* Top Header UI - Match position, styles, and scale of FluidDistortion header */}
       <motion.div
@@ -333,6 +333,16 @@ const MenuOverlay: React.FC<MenuOverlayProps> = ({ onClose, topUIScale, weatherM
             </span>
           </motion.div>
         </div>
+
+        <motion.a
+          {...activeRevealItem(0.58)}
+          href="https://github.com/HanYu-Wu04/HanYu-Wu"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group absolute bottom-8 left-1/2 -translate-x-1/2 text-[11px] md:text-xs font-black uppercase tracking-normal text-white/80 hover:text-white/80 transition-colors font-press-start"
+        >
+          <LandoText text="SOURCE CODE" className="lando-link-mono" />
+        </motion.a>
       </motion.div>
     </motion.div>
   );

@@ -48,8 +48,8 @@
 
   .lando-link span {
     display: inline-block;
-    transition: transform 0.22s var(--ease-out-ui);
-    transition-delay: calc(var(--index) * 0.025s);
+    transition: transform 0.5s var(--ease-out-ui);
+    transition-delay: calc(var(--index) * 0.05s);
     height: 1.3em;
   }
 
