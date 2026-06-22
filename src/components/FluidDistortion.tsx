@@ -618,7 +618,11 @@ const GalleryCard: React.FC<{
   );
 };
 
-const FluidDistortion: React.FC = () => {
+type FluidDistortionProps = {
+  onSceneReady?: () => void;
+};
+
+const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -756,6 +760,9 @@ const FluidDistortion: React.FC = () => {
     if (!canvasRef.current || !containerRef.current) return;
 
     const canvas = canvasRef.current;
+    let isDisposed = false;
+    const pendingImages: HTMLImageElement[] = [];
+    const loadedTextures: THREE.Texture[] = [];
     const renderer = new THREE.WebGLRenderer({ 
       canvas, 
       alpha: true, 
@@ -857,39 +864,65 @@ const FluidDistortion: React.FC = () => {
       fragmentShader: displayFragmentShader,
     });
 
-    const loadImage = (url: string, type: 'base' | 'reveal' | 'ice' | 'baseDepth' | 'revealDepth' | 'iceDepth', sizeVector?: THREE.Vector2) => {
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.onload = () => {
-        sizeVector?.set(img.width, img.height);
-        const tex = new THREE.Texture(img);
-        tex.needsUpdate = true;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
+    const loadImage = (
+      url: string,
+      type: 'base' | 'reveal' | 'ice' | 'baseDepth' | 'revealDepth' | 'iceDepth',
+      sizeVector?: THREE.Vector2
+    ) => {
+      return new Promise<void>((resolve) => {
+        const img = new Image();
+        pendingImages.push(img);
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const pendingIndex = pendingImages.indexOf(img);
+          if (pendingIndex !== -1) {
+            pendingImages.splice(pendingIndex, 1);
+          }
+
+          if (isDisposed) {
+            resolve();
+            return;
+          }
+
+          sizeVector?.set(img.width, img.height);
+          const tex = new THREE.Texture(img);
+          tex.needsUpdate = true;
+          tex.minFilter = THREE.LinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          loadedTextures.push(tex);
+          
+          if (type === 'base') {
+            displayMaterial.uniforms.uBaseTexture.value = tex;
+          } else if (type === 'reveal') {
+            displayMaterial.uniforms.uRevealTexture.value = tex;
+          } else if (type === 'ice') {
+            displayMaterial.uniforms.uIceTexture.value = tex;
+          } else if (type === 'baseDepth') {
+            displayMaterial.uniforms.uBaseDepthTexture.value = tex;
+          } else if (type === 'revealDepth') {
+            displayMaterial.uniforms.uRevealDepthTexture.value = tex;
+          } else {
+            displayMaterial.uniforms.uIceDepthTexture.value = tex;
+          }
+          resolve();
+        };
         
-        if (type === 'base') {
-          displayMaterial.uniforms.uBaseTexture.value = tex;
-        } else if (type === 'reveal') {
-          displayMaterial.uniforms.uRevealTexture.value = tex;
-        } else if (type === 'ice') {
-          displayMaterial.uniforms.uIceTexture.value = tex;
-        } else if (type === 'baseDepth') {
-          displayMaterial.uniforms.uBaseDepthTexture.value = tex;
-        } else if (type === 'revealDepth') {
-          displayMaterial.uniforms.uRevealDepthTexture.value = tex;
-        } else {
-          displayMaterial.uniforms.uIceDepthTexture.value = tex;
-        }
-      };
-      
-      img.onerror = () => {
-        console.warn(`Could not load ${url}.`);
-      };
-      img.src = url;
+        img.onerror = () => {
+          const pendingIndex = pendingImages.indexOf(img);
+          if (pendingIndex !== -1) {
+            pendingImages.splice(pendingIndex, 1);
+          }
+          console.warn(`Could not load ${url}.`);
+          resolve();
+        };
+        img.src = url;
+      });
     };
 
-    loadImage(ASSETS.baseImage, 'base', baseSize);
-    loadImage(ASSETS.revealImage, 'reveal', revealSize);
+    const textureReadyPromise = Promise.all([
+      loadImage(ASSETS.baseImage, 'base', baseSize),
+      loadImage(ASSETS.revealImage, 'reveal', revealSize),
+    ]);
     loadImage(ASSETS.iceImage, 'ice', iceSize);
     loadImage(ASSETS.baseDepthImage, 'baseDepth');
     loadImage(ASSETS.revealDepthImage, 'revealDepth');
@@ -1088,7 +1121,22 @@ const FluidDistortion: React.FC = () => {
 
     const animId = animate();
 
+    textureReadyPromise.then(() => {
+      if (isDisposed) {
+        return;
+      }
+
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
+      requestAnimationFrame(() => {
+        if (!isDisposed) {
+          onSceneReady?.();
+        }
+      });
+    });
+
     return () => {
+      isDisposed = true;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('resize', updateRendererSize);
@@ -1099,11 +1147,12 @@ const FluidDistortion: React.FC = () => {
       }
       resizeObserver.disconnect();
       cancelAnimationFrame(animId);
+      loadedTextures.forEach((texture) => texture.dispose());
       renderer.dispose();
       pingPongTargets.forEach(t => t.dispose());
       iceMaskObj.dispose();
     };
-  }, []);
+  }, [onSceneReady]);
 
   return (
     <div ref={scrollRef} className="relative w-full min-h-screen bg-[#0A0F1A]">

@@ -1,61 +1,106 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
 const MIN_LOADER_MS = 650;
-const MAX_CRITICAL_ASSET_WAIT_MS = 900;
 const H_MARK_PATH =
   'M-10 -15L-15 15H-8L-5 0H5L2 15H10L15 -15H7L4 -2H-6L-3 -15H-10Z';
-
-const criticalImageAssets = [
-  '/base.png',
-  '/top.png',
-];
+const criticalImageAssets = ['/base.png', '/top.png'];
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 }
 
-function preloadImage(src: string) {
+function waitForNextFrame() {
+  return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+function preloadImage(src: string, pendingImages: HTMLImageElement[]) {
   return new Promise<void>((resolve) => {
     const image = new Image();
-    image.onload = () => resolve();
-    image.onerror = () => resolve();
+    pendingImages.push(image);
+
+    const finish = () => {
+      const pendingIndex = pendingImages.indexOf(image);
+      if (pendingIndex !== -1) {
+        pendingImages.splice(pendingIndex, 1);
+      }
+      resolve();
+    };
+
+    image.onload = finish;
+    image.onerror = finish;
     image.src = src;
   });
 }
 
-export default function LoadingOverlay() {
+type LoadingOverlayProps = {
+  isReady: boolean;
+}
+
+export default function LoadingOverlay({ isReady }: LoadingOverlayProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [hasMetMinimumDuration, setHasMetMinimumDuration] = useState(false);
+  const [hasLoadedCriticalImages, setHasLoadedCriticalImages] = useState(false);
+  const hasStartedReveal = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
-    let revealTimeout: number | undefined;
 
-    Promise.all([
-      wait(MIN_LOADER_MS),
-      Promise.race([
-        Promise.all(criticalImageAssets.map(preloadImage)),
-        wait(MAX_CRITICAL_ASSET_WAIT_MS),
-      ]),
-    ]).then(() => {
+    wait(MIN_LOADER_MS).then(() => {
       if (isMounted) {
-        setIsRevealing(true);
-        revealTimeout = window.setTimeout(() => {
-          if (isMounted) {
-            setIsVisible(false);
-          }
-        }, 980);
+        setHasMetMinimumDuration(true);
       }
     });
 
     return () => {
       isMounted = false;
-      if (revealTimeout) {
-        window.clearTimeout(revealTimeout);
-      }
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const pendingImages: HTMLImageElement[] = [];
+
+    Promise.all(criticalImageAssets.map((src) => preloadImage(src, pendingImages)))
+      .then(waitForNextFrame)
+      .then(waitForNextFrame)
+      .then(() => {
+        if (isMounted) {
+          setHasLoadedCriticalImages(true);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      pendingImages.length = 0;
+    };
+  }, []);
+
+  useEffect(() => {
+    const canReveal = isReady || hasLoadedCriticalImages;
+
+    if (!canReveal || !hasMetMinimumDuration || hasStartedReveal.current) {
+      return;
+    }
+
+    hasStartedReveal.current = true;
+    setIsRevealing(true);
+  }, [hasLoadedCriticalImages, hasMetMinimumDuration, isReady]);
+
+  useEffect(() => {
+    if (!isRevealing) {
+      return;
+    }
+
+    const revealTimeout = window.setTimeout(() => {
+      setIsVisible(false);
+    }, 980);
+
+    return () => {
+      window.clearTimeout(revealTimeout);
+    };
+  }, [isRevealing]);
 
   return (
     <AnimatePresence>
@@ -127,7 +172,7 @@ export default function LoadingOverlay() {
             transition={{ duration: 0.38, ease: 'easeOut', delay: 0.12 }}
             className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 font-press-start text-[11px] uppercase tracking-normal"
           >
-            LOADING...
+            BUILDING...
           </motion.div>
         </motion.div>
       )}

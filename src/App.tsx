@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import FluidDistortion from './components/FluidDistortion';
 import FluidCursor from './components/FluidCursor';
 import LoadingOverlay from './components/LoadingOverlay';
 
 export default function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isSceneReady, setIsSceneReady] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -19,11 +20,19 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    setIsSceneReady(false);
+  }, [isMobile]);
+
+  const handleSceneReady = useCallback(() => {
+    setIsSceneReady(true);
+  }, []);
+
   return (
     <main className="min-h-screen bg-black">
-      <FluidDistortion key={isMobile ? 'mobile' : 'desktop'} />
+      <FluidDistortion key={isMobile ? 'mobile' : 'desktop'} onSceneReady={handleSceneReady} />
       <FluidCursor />
-      <LoadingOverlay />
+      <LoadingOverlay isReady={isSceneReady} />
     </main>
   );
 }
