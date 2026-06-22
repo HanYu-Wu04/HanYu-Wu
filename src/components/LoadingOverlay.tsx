@@ -5,6 +5,7 @@ const MIN_LOADER_MS = 650;
 const H_MARK_PATH =
   'M-10 -15L-15 15H-8L-5 0H5L2 15H10L15 -15H7L4 -2H-6L-3 -15H-10Z';
 const criticalImageAssets = ['/base.png', '/top.png'];
+const buildingFrames = ['', '.', '..', '...'];
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms));
@@ -42,6 +43,7 @@ export default function LoadingOverlay({ isReady }: LoadingOverlayProps) {
   const [isRevealing, setIsRevealing] = useState(false);
   const [hasMetMinimumDuration, setHasMetMinimumDuration] = useState(false);
   const [hasLoadedCriticalImages, setHasLoadedCriticalImages] = useState(false);
+  const [buildingFrame, setBuildingFrame] = useState(0);
   const hasStartedReveal = useRef(false);
 
   useEffect(() => {
@@ -99,6 +101,20 @@ export default function LoadingOverlay({ isReady }: LoadingOverlayProps) {
 
     return () => {
       window.clearTimeout(revealTimeout);
+    };
+  }, [isRevealing]);
+
+  useEffect(() => {
+    if (isRevealing) {
+      return;
+    }
+
+    const frameInterval = window.setInterval(() => {
+      setBuildingFrame((currentFrame) => (currentFrame + 1) % buildingFrames.length);
+    }, 320);
+
+    return () => {
+      window.clearInterval(frameInterval);
     };
   }, [isRevealing]);
 
@@ -170,9 +186,9 @@ export default function LoadingOverlay({ isReady }: LoadingOverlayProps) {
             initial={{ y: 14, opacity: 0 }}
             animate={{ y: isRevealing ? 8 : 0, opacity: isRevealing ? 0 : 1 }}
             transition={{ duration: 0.38, ease: 'easeOut', delay: 0.12 }}
-            className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 font-press-start text-[11px] uppercase tracking-normal"
+            className="absolute bottom-10 left-1/2 z-10 w-[180px] -translate-x-1/2 text-center font-press-start text-[11px] uppercase tracking-normal"
           >
-            BUILDING...
+            BUILDING<span className="inline-block w-[3ch] text-left">{buildingFrames[buildingFrame]}</span>
           </motion.div>
         </motion.div>
       )}

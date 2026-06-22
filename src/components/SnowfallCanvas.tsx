@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 
 export type ParticleWeatherMode = 'snow' | 'rain';
 type ParticleWeatherTone = 'light' | 'contrast';
@@ -9,6 +9,7 @@ interface SnowfallCanvasProps {
   opacity?: number;
   mode?: ParticleWeatherMode;
   tone?: ParticleWeatherTone;
+  style?: CSSProperties;
 }
 
 type SnowParticle = {
@@ -169,8 +170,8 @@ function createParticle(
     vy: 0,
     clusterX,
     radius: mode === 'rain' ? 0.55 + Math.random() * 1.45 : cluster ? 0.65 + Math.random() * 1.7 : 0.8 + Math.random() * 2.6,
-    speed: mode === 'rain' ? 9.4 + Math.random() * 8.2 : 0.28 + Math.random() * 0.72,
-    drift: mode === 'rain' ? -1.9 - Math.random() * 1.8 : 0.18 + Math.random() * 0.42,
+    speed: mode === 'rain' ? 10.8 + Math.random() * 9.4 : 0.58 + Math.random() * 1.08,
+    drift: mode === 'rain' ? -2.2 - Math.random() * 2.2 : 0.28 + Math.random() * 0.62,
     phase: Math.random() * Math.PI * 2,
     alpha: mode === 'rain' ? 0.22 + Math.random() * 0.5 : cluster ? 0.26 + Math.random() * 0.34 : 0.34 + Math.random() * 0.52,
     cluster,
@@ -187,6 +188,7 @@ export default function SnowfallCanvas({
   opacity = 1,
   mode = 'snow',
   tone = 'light',
+  style,
 }: SnowfallCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -210,7 +212,7 @@ export default function SnowfallCanvas({
     const desktopCap = mode === 'snow' ? 420 : 340;
     const particleCount = Math.max(36, Math.min(rawParticleCount, isMobile ? mobileCap : desktopCap));
     const dpr = Math.min(window.devicePixelRatio || 1, isCoarsePointer || lowPowerDevice ? 1 : 1.2);
-    const frameInterval = mode === 'rain' || particleCount > 260 ? 1000 / 40 : 1000 / 48;
+    const frameInterval = mode === 'rain' || particleCount > 260 ? 1000 / 45 : 1000 / 52;
     const colors = weatherTones[tone];
     const particles: SnowParticle[] = [];
     const snowSprites = mode === 'snow'
@@ -294,7 +296,7 @@ export default function SnowfallCanvas({
       if (now >= gust.nextTime) {
         gust.startTime = now;
         gust.duration = mode === 'rain' ? 1900 + Math.random() * 1300 : 2400 + Math.random() * 2200;
-        gust.strength = mode === 'rain' ? 2.8 + Math.random() * 2.2 : 0.95 + Math.random() * 1.55;
+        gust.strength = mode === 'rain' ? 3.2 + Math.random() * 2.6 : 1.25 + Math.random() * 1.8;
         gust.direction = Math.random() < 0.72 ? 1 : -1;
         gust.nextTime = now + gust.duration + (mode === 'rain' ? 4200 + Math.random() * 5600 : 6200 + Math.random() * 6800);
       }
@@ -337,8 +339,8 @@ export default function SnowfallCanvas({
 
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      ctx.filter = tone === 'contrast' ? 'blur(9px)' : 'blur(6px)';
-      const ribbonAlpha = (tone === 'contrast' ? 0.105 : 0.052) * intensity * opacity;
+      ctx.filter = lowPowerDevice ? 'none' : tone === 'contrast' ? 'blur(7px)' : 'blur(5px)';
+      const ribbonAlpha = (tone === 'contrast' ? 0.092 : 0.048) * intensity * opacity;
       const lineAlpha = (tone === 'contrast' ? 0.09 : 0.045) * intensity * opacity;
 
       for (let i = 0; i < 5; i += 1) {
@@ -448,7 +450,7 @@ export default function SnowfallCanvas({
       const clusterPull = particle.cluster ? (particle.clusterX - particle.x) * 0.0018 * delta : 0;
       const naturalDrift = mode === 'rain'
         ? (particle.drift + wind) * delta
-        : Math.sin(particle.phase) * particle.drift * delta + clusterPull + wind * (particle.flake ? 1.15 : 0.72) * delta;
+        : Math.sin(particle.phase) * particle.drift * delta + clusterPull + wind * (particle.flake ? 1.35 : 0.88) * delta;
       particle.x += naturalDrift;
       particle.rotation += particle.rotationSpeed * delta + wind * 0.0025 * delta;
 
@@ -637,6 +639,7 @@ export default function SnowfallCanvas({
     <canvas
       ref={canvasRef}
       className={`block h-full w-full ${className}`}
+      style={style}
       aria-hidden="true"
     />
   );

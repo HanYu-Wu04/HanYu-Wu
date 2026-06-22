@@ -89,6 +89,7 @@ export const displayFragmentShader = `
   uniform float uTime;
   uniform float uBgBrightness;
   uniform float uBgBlurMix;
+  uniform float uPlainBaseMix;
   
   varying vec2 vUv;
 
@@ -202,6 +203,14 @@ export const displayFragmentShader = `
     float centerY = uPortraitCenterY;
     float shiftY = uPortraitShiftY;
 
+    vec4 plainBase = sampleZoomedContain(uBaseTexture, vUv, uResolution, uBaseSize, zoom, centerY, shiftY);
+    vec3 plainBg = mix(vec3(0.80, 0.91, 0.96), vec3(0.93, 0.97, 0.98), vUv.y);
+    vec4 plainColor = vec4(mix(plainBg, plainBase.rgb, plainBase.a), 1.0);
+    if (uPlainBaseMix >= 0.999) {
+      gl_FragColor = plainColor;
+      return;
+    }
+
     // Liquid refraction distortion based on derivatives
     vec2 px = 1.0 / uResolution;
     float mx = texture2D(uFluid, vUv + vec2(px.x * 2.0, 0.0)).r - texture2D(uFluid, vUv - vec2(px.x * 2.0, 0.0)).r;
@@ -263,6 +272,6 @@ export const displayFragmentShader = `
       finalColor.rgb *= subjectMask;
     }
 
-    gl_FragColor = finalColor;
+    gl_FragColor = mix(finalColor, plainColor, uPlainBaseMix);
   }
 `;

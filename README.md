@@ -58,7 +58,7 @@ The parallax strength fades out as the hero starts shrinking, so the depth effec
 
 Current depth settings:
 
-- Cursor input in `src/components/FluidDistortion.tsx`: `(mouse - 0.5) * 0.9`.
+- Cursor input in `src/components/FluidDistortion.tsx`: `(mouse - 0.5) * 1.5`.
 - Cursor smoothing/easing: `0.045`, so the depth movement trails the cursor instead of snapping.
 - Base portrait displacement strength: `0.032`.
 - Top/reveal portrait displacement strength: `0.034`.
@@ -211,7 +211,7 @@ Shader 会在 `src/shaders.ts` 的 `sampleDepthParallax(...)` 中读取 depth ma
 
 当前 depth 参数：
 
-- 鼠标输入在 `src/components/FluidDistortion.tsx` 中被缩放为 `(mouse - 0.5) * 0.9`。
+- 鼠标输入在 `src/components/FluidDistortion.tsx` 中被缩放为 `(mouse - 0.5) * 1.5`。
 - 鼠标平滑系数为 `0.045`，所以 depth 位移会慢慢跟随鼠标，而不是突然跳动。
 - `base.png` 位移强度：`0.032`。
 - `top.png` / reveal 图层位移强度：`0.034`。

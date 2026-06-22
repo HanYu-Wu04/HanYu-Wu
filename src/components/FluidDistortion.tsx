@@ -654,6 +654,12 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
   const boxHeight = useTransform(scrollYProgress, [0.08, isMobileViewport ? 0.32 : 0.38], ['100vh', isMobileViewport ? '36vh' : '45vh']);
   const boxY = useTransform(scrollYProgress, [0.35, 0.55], ['0%', '-20%']);
   const overlayOpacity = useTransform(scrollYProgress, [0, 0.25], [0, 0]);
+  const rectangleEffectOpacity = useTransform(scrollYProgress, [0.08, 0.14], [1, 0]);
+  const rectangleDimOpacity = useTransform(
+    scrollYProgress,
+    [0.08, isMobileViewport ? 0.24 : 0.28, sceneExitStart],
+    [0, 0.28, 0.42]
+  );
   
   // Section-specific opacities and offsets
   const section1Opacity = useTransform(scrollYProgress, [0, 1.0], [1, 1]);
@@ -687,8 +693,8 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
 
   // Background Darkening & Effects - Clean dark transition at the end
   const bgBrightness = useTransform(scrollYProgress, [0.0, 0.92, FINAL_SCROLL_PROGRESS], [1.08, 0.86, 0.94]);
-  const videoBlur = useTransform(scrollYProgress, [0.3, 0.6, 0.75, 0.82], ['0px', '4px', '8px', '12px']);
-  const contrastMaskOpacity = useTransform(scrollYProgress, [0.0, 0.15, 0.45, 0.6], [0.06, 0.28, 0.42, 0.0]);
+  const videoBlur = useTransform(scrollYProgress, [0.3, 0.6, 0.75, 0.82], ['0px', '2px', '4px', '6px']);
+  const contrastMaskOpacity = useTransform(scrollYProgress, [0.0, 0.12, 0.2, 0.32], [0.06, 0.18, 0.08, 0.0]);
   const endOverlayOpacity = useTransform(scrollYProgress, [0.52, isMobileViewport ? 0.75 : 0.82, 0.90, FINAL_SCROLL_PROGRESS], [0, 0.78, 0.22, 0]);
   const frostVignette = useTransform(scrollYProgress, [0, 0.5, 0.7, 0.95, 1.0], [0, 0, 0, 0, 0]);
   const nameColor = useTransform(scrollYProgress, [0.08, 0.38, isMobileViewport ? 0.88 : 0.93, isMobileViewport ? 0.89 : 0.94, FINAL_SCROLL_PROGRESS], ['#000000', '#ffffff', '#ffffff', '#20271d', '#20271d']);
@@ -772,8 +778,9 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
     
     let width = containerRef.current.clientWidth;
     let height = containerRef.current.clientHeight;
+    const isLowPowerDevice = window.innerWidth < 768 || (navigator.hardwareConcurrency ?? 8) <= 4;
     renderer.setSize(width, height, false);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowPowerDevice ? 1.15 : 1.5));
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1);
@@ -803,7 +810,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       }
     };
 
-    const size = 512;
+    const size = isLowPowerDevice ? 384 : 512;
     const renderTargetOptions = {
         minFilter: THREE.LinearFilter,
         magFilter: THREE.LinearFilter,
@@ -859,6 +866,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
         uTime: { value: 0 },
         uBgBrightness: { value: 0.95 },
         uBgBlurMix: { value: 0 },
+        uPlainBaseMix: { value: 0 },
       },
       vertexShader,
       fragmentShader: displayFragmentShader,
@@ -986,18 +994,29 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
     resizeObserver.observe(containerRef.current);
 
     window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('resize', updateRendererSize);
     window.addEventListener('keydown', onKeyDown);
 
     let maskFormedProgress = 0.0;
     let currentRotationX = -0.08;
     let currentRotationY = 0.0;
+    let lastWebglFrameTime = 0;
     const animate = () => {
       const animationId = requestAnimationFrame(animate);
-      const time = performance.now() * 0.001;
+      const nowMs = performance.now();
+      const currentScroll = scrollYProgress.get();
+      const isHeroSceneRelevant = currentScroll < sceneExitEnd + 0.06;
+      const targetFrameInterval = currentScroll < 0.08 ? 1000 / 60 : 1000 / 30;
 
-      if (isMoving && performance.now() - lastMoveTime > 100) {
+      if (!isHeroSceneRelevant || nowMs - lastWebglFrameTime < targetFrameInterval) {
+        return animationId;
+      }
+
+      lastWebglFrameTime = nowMs;
+      const time = nowMs * 0.001;
+
+      if (isMoving && nowMs - lastMoveTime > 100) {
         isMoving = false;
       }
 
@@ -1038,7 +1057,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       currentTargetIndex = (currentTargetIndex + 1) % 2;
       const currentRenderTarget = pingPongTargets[currentTargetIndex];
 
-      const isIdle = (performance.now() - lastMoveTime) > 3000;
+      const isIdle = (nowMs - lastMoveTime) > 3000;
       trailsMaterial.uniforms.uPrevTrails.value = prevTarget.texture;
       trailsMaterial.uniforms.uMouse.value.copy(mouse);
       trailsMaterial.uniforms.uPrevMouse.value.copy(prevMouse);
@@ -1048,7 +1067,12 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       trailsMaterial.uniforms.uUseAutoMouse.value = isIdle;
 
       renderer.setRenderTarget(currentRenderTarget);
-      renderer.render(simScene, camera);
+      const plainBaseMix = currentScroll < 0.08
+        ? 0
+        : Math.min(1, (currentScroll - 0.08) / 0.04);
+      if (plainBaseMix < 1) {
+        renderer.render(simScene, camera);
+      }
       displayMaterial.uniforms.uFluid.value = currentRenderTarget.texture;
       displayMaterial.uniforms.uIceManMode.value = iceManRef.current;
 
@@ -1058,8 +1082,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
         maskFormedProgress = 0.0;
       }
 
-      // Read scroll and fade out ice mask opacity as user scrolls past hero section
-      const currentScroll = scrollYProgress.get();
+      // Fade out ice mask opacity as user scrolls past hero section
       let scrollFade = 1.0;
       if (currentScroll > 0.05) {
         scrollFade = Math.max(0.0, 1.0 - (currentScroll - 0.05) / 0.1);
@@ -1074,11 +1097,12 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
       displayMaterial.uniforms.uTime.value = time;
       displayMaterial.uniforms.uBgBrightness.value = bgBrightness.get();
       displayMaterial.uniforms.uBgBlurMix.value = parseFloat(videoBlur.get());
+      displayMaterial.uniforms.uPlainBaseMix.value = plainBaseMix;
       const depthParallaxStrength = currentScroll < 0.06
         ? 1
         : Math.max(0, 1 - (currentScroll - 0.06) / 0.02);
-      const targetParallaxX = (mouse.x - 0.5) * 0.9 * depthParallaxStrength;
-      const targetParallaxY = (mouse.y - 0.5) * 0.9 * depthParallaxStrength;
+      const targetParallaxX = (mouse.x - 0.5) * 1.5 * depthParallaxStrength;
+      const targetParallaxY = (mouse.y - 0.5) * 1.5 * depthParallaxStrength;
       parallax.x += (targetParallaxX - parallax.x) * 0.045;
       parallax.y += (targetParallaxY - parallax.y) * 0.045;
       displayMaterial.uniforms.uParallax.value.copy(parallax);
@@ -1096,7 +1120,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
 
       iceMaskGroup.rotation.x = currentRotationX;
       iceMaskGroup.rotation.y = currentRotationY;
-      iceMaskGroup.visible = !iceManRef.current;
+      iceMaskGroup.visible = !iceManRef.current && plainBaseMix < 0.6;
 
       // Apply aspect ratio scale correction dynamically to prevent horizontal stretching and position drifts
       const aspect = width / height;
@@ -1217,7 +1241,7 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
 
       {/* Contrast Mask Overlay */}
       <motion.div
-        className="fixed inset-0 z-[3] pointer-events-none bg-[#090D16]/55 backdrop-blur-[1px]"
+        className="fixed inset-0 z-[3] pointer-events-none bg-[#090D16]/55"
         style={{ opacity: contrastMaskOpacity }}
       />
 
@@ -1433,14 +1457,14 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                 <motion.div 
                   animate={{ x: [0, -2000] }}
                   transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950/60 leading-[1.35] mb-1 [word-spacing:-2.5vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-blue-950 leading-[1.35] mb-1 [word-spacing:-2.5vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.32)]"
                 >
                   FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER FULLSTACK SOFTWARE ENGINEER
                 </motion.div>
                 <motion.div 
                   animate={{ x: [-2000, 0] }}
                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/40 leading-[1.35] [word-spacing:-2.5vw]"
+                  className="whitespace-nowrap font-press-start text-[5.1vw] font-normal uppercase tracking-normal text-sky-900/90 leading-[1.35] [word-spacing:-2.5vw] drop-shadow-[0_0_14px_rgba(14,165,233,0.28)]"
                 >
                   FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER FORWARD DEPLOYED ENGINEER
                 </motion.div>
@@ -1470,6 +1494,11 @@ const FluidDistortion: React.FC<FluidDistortionProps> = ({ onSceneReady }) => {
                 opacity={0.72}
                 mode={weatherMode}
                 tone={weatherMode === 'snow' ? 'contrast' : 'light'}
+                style={{ opacity: rectangleEffectOpacity }}
+              />
+              <motion.div
+                className="absolute inset-0 z-20 pointer-events-none bg-[#06111d]"
+                style={{ opacity: rectangleDimOpacity }}
               />
             </motion.div>
 
